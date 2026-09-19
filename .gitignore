@@ -7,6 +7,7 @@ screenshot_*.png
 node_modules/
 wuziqi/fc/node_modules/
 gdy/fc/node_modules/
+xq/fc/node_modules/
 
 # IDE/工具
 .trae/
@@ -21,3 +22,5 @@ wuziqi/fc/create_table.js
 wuziqi/fc/get_account.js
 wuziqi/fc/ots.js
 gdy/fc/create_table.js
+xq/fc/create_table.js
+xq/fc/.s/

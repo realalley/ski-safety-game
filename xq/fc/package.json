@@ -1,0 +1,9 @@
+{
+  "name": "xq-fc",
+  "version": "1.0.0",
+  "description": "中国象棋在线对战 FC 函数（Tablestore 强一致存储）",
+  "main": "index.js",
+  "dependencies": {
+    "tablestore": "^5.6.0"
+  }
+}
