@@ -93,7 +93,7 @@ const Game = (function () {
     }
 
     function getRoomCode() {
-        return room ? room.roomCode : null;
+        return roomCode;
     }
 
     function render() {
@@ -103,7 +103,7 @@ const Game = (function () {
     }
 
     return {
-        setRoom, getRoom, setMyInfo, getMyColor,
+        setRoom, getRoom, setMyInfo, getMyColor, setRoomCode,
         getMyPlayer, isMyTurn, getOpponent,
         handleBoardClick, render, getRoomCode,
     };
