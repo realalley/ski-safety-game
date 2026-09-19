@@ -1,0 +1,43 @@
+edition: 1.0.0
+name: gdy-api
+access: default
+vars:
+  region: cn-hangzhou
+  service: wuziqi
+  function: gdy
+
+services:
+  gdy-api:
+    component: fc
+    actions:
+      pre-deploy:
+        - run: npm install --production
+          path: ./
+    props:
+      region: ${vars.region}
+      service:
+        name: ${vars.service}
+        description: 五子棋和干瞪眼游戏服务
+      function:
+        name: ${vars.function}
+        description: 干瞪眼游戏 API
+        runtime: nodejs16
+        codeUri: ./
+        handler: index.handler
+        memorySize: 256
+        timeout: 30
+        environmentVariables:
+          OTS_ENDPOINT: https://wuziqi.cn-hangzhou.ots.aliyuncs.com
+          OTS_INSTANCE: wuziqi
+          OTS_TABLE_NAME: gdy_room
+          OTS_AK_ID: ${env.OTS_AK_ID}
+          OTS_AK_SECRET: ${env.OTS_AK_SECRET}
+      triggers:
+        - name: httpTrigger
+          type: http
+          config:
+            authType: anonymous
+            methods:
+              - GET
+              - POST
+              - OPTIONS

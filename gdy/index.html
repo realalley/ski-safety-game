@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>干瞪眼</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <!-- 首页：创建/加入房间 -->
+  <div id="home-screen" class="screen active">
+    <div class="home-container">
+      <h1 class="game-title">干瞪眼</h1>
+      <p class="subtitle">扑克牌对战</p>
+      <div class="home-form">
+        <input type="text" id="player-name" placeholder="输入你的昵称" maxlength="8">
+        <button id="btn-create" class="btn-primary">创建房间</button>
+        <div class="divider">或加入房间</div>
+        <div class="join-row">
+          <input type="text" id="room-code" placeholder="输入房间号" maxlength="6">
+          <button id="btn-join" class="btn-secondary">加入</button>
+        </div>
+      </div>
+      <p class="rules-link" id="btn-rules">查看规则</p>
+    </div>
+  </div>
+
+  <!-- 等待房间 -->
+  <div id="waiting-screen" class="screen">
+    <div class="waiting-container">
+      <h2>等待玩家加入</h2>
+      <div class="room-code-box">
+        <span class="label">房间号</span>
+        <span id="display-room-code" class="code">------</span>
+        <button id="btn-copy" class="btn-small">复制</button>
+      </div>
+      <div class="player-list" id="waiting-player-list"></div>
+      <p class="tip">分享房间号给好友即可开始</p>
+      <button id="btn-start" class="btn-primary" style="display:none;">开始游戏</button>
+      <button id="btn-leave-waiting" class="btn-secondary">离开房间</button>
+    </div>
+  </div>
+
+  <!-- 游戏页面 -->
+  <div id="game-screen" class="screen">
+    <div class="game-header">
+      <span id="game-room-code">房间号: ------</span>
+      <span id="turn-indicator">等待出牌</span>
+      <button id="btn-leave-game" class="btn-tiny">退出</button>
+    </div>
+
+    <div class="game-area">
+      <!-- 对手区域 -->
+      <div class="opponent-area">
+        <div class="opponent-info">
+          <span id="opponent-name">对手</span>
+          <span id="opponent-count" class="count">0 张</span>
+          <span id="opponent-alarm" class="alarm" style="display:none;">报警!</span>
+        </div>
+        <div id="opponent-back" class="opponent-cards"></div>
+      </div>
+
+      <!-- 中央出牌区 -->
+      <div class="center-area">
+        <div id="last-play" class="last-play">
+          <span id="last-player" class="last-player"></span>
+          <div id="last-cards" class="last-cards"></div>
+        </div>
+        <div id="message" class="message"></div>
+      </div>
+
+      <!-- 我的手牌 -->
+      <div class="my-area">
+        <div class="my-info">
+          <span id="my-name">我</span>
+          <span id="my-count" class="count">0 张</span>
+          <span id="my-alarm" class="alarm" style="display:none;">报警!</span>
+        </div>
+        <div id="my-hand" class="my-hand"></div>
+        <div class="action-bar">
+          <button id="btn-play" class="btn-primary">出牌</button>
+          <button id="btn-pass" class="btn-secondary">过</button>
+          <button id="btn-hint" class="btn-tiny">提示</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 结算页 -->
+  <div id="result-screen" class="screen">
+    <div class="result-container">
+      <h2 id="result-title">游戏结束</h2>
+      <div id="result-content" class="result-content"></div>
+      <button id="btn-again" class="btn-primary">再来一局</button>
+      <button id="btn-home" class="btn-secondary">返回首页</button>
+    </div>
+  </div>
+
+  <!-- 规则弹窗 -->
+  <div id="rules-modal" class="modal">
+    <div class="modal-content">
+      <h3>干瞪眼规则</h3>
+      <div class="rules-text">
+        <p><b>牌数</b>：一副牌54张（含大小王）</p>
+        <p><b>发牌</b>：庄家6张，闲家5张</p>
+        <p><b>牌序</b>：3&lt;4&lt;5&lt;6&lt;7&lt;8&lt;9&lt;10&lt;J&lt;Q&lt;K&lt;A&lt;2</p>
+        <p><b>牌型</b>：</p>
+        <ul>
+          <li>单牌：任意一张</li>
+          <li>对子：两张同点数</li>
+          <li>炸弹：三张同点数，可压任意牌型</li>
+          <li>氢弹：四张同点数，可压炸弹</li>
+          <li>双王炸弹：大王+小王，最大</li>
+        </ul>
+        <p><b>规则</b>：</p>
+        <ul>
+          <li>2可压任意单牌，对2可压任意对子</li>
+          <li>出不起可"过"，所有人都过时最后出牌者补1张</li>
+          <li>先出完牌者获胜</li>
+          <li>剩1张时显示"报警"</li>
+        </ul>
+      </div>
+      <button id="btn-close-rules" class="btn-primary">知道了</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/cards.js"></script>
+<script src="js/network.js"></script>
+<script src="js/game.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
