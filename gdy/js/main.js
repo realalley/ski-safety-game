@@ -118,15 +118,40 @@
     });
 
     document.getElementById('btn-hint').addEventListener('click', async () => {
+        const btn = document.getElementById('btn-hint');
+        btn.disabled = true;
         try {
+            // 1. 获取提示推荐的牌
             const data = await Network.getHint(currentCode);
             if (data.cards && data.cards.length > 0) {
+                // 2. 高亮选中推荐牌
                 Game.setSelectedCards(data.cards);
                 Game.render();
+                // 3. 延迟300ms让用户看到选中效果，然后自动出牌
+                await new Promise(r => setTimeout(r, 300));
+                const playData = await Network.playCards(currentCode, data.cards);
+                Game.setRoom(playData.room);
+                Game.clearSelection();
+                Game.render();
+                if (playData.room.status === 'finished') {
+                    setTimeout(() => showResult(playData.room), 500);
+                }
             } else {
-                alert('没有能压过上家的牌，选择过牌吧');
+                // 无牌可出，自动过牌
+                if (Game.canPass()) {
+                    const passData = await Network.pass(currentCode);
+                    Game.setRoom(passData.room);
+                    Game.clearSelection();
+                    Game.render();
+                } else {
+                    alert('没有能压过上家的牌');
+                }
             }
-        } catch (e) { alert(e.message); }
+        } catch (e) {
+            alert(e.message);
+        } finally {
+            btn.disabled = false;
+        }
     });
 
     document.getElementById('btn-leave-game').addEventListener('click', () => {

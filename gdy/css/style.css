@@ -90,7 +90,11 @@ body {
 .action-bar { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
 .action-bar .btn-primary { width: auto; padding: 10px 28px; }
 .action-bar .btn-secondary { width: auto; margin-top: 0; padding: 10px 28px; }
-.action-bar .btn-tiny { align-self: center; }
+.action-bar .btn-hint {
+  width: auto; padding: 10px 20px; font-size: 15px; font-weight: 600;
+  border: none; border-radius: 10px; cursor: pointer;
+  background: linear-gradient(180deg, #4fc3f7, #29b6f6); color: #003c50;
+}
 
 /* 结算页 */
 .result-container { text-align: center; padding-top: 100px; }

@@ -96,11 +96,14 @@ const Game = (function () {
         // 按钮
         const btnPlay = document.getElementById('btn-play');
         const btnPass = document.getElementById('btn-pass');
+        const btnHint = document.getElementById('btn-hint');
         const myTurn = isMyTurn();
         btnPlay.disabled = !myTurn;
         btnPass.disabled = !myTurn || !canPass();
+        btnHint.disabled = !myTurn;
         btnPlay.style.opacity = myTurn ? 1 : 0.5;
         btnPass.style.opacity = (myTurn && canPass()) ? 1 : 0.5;
+        btnHint.style.opacity = myTurn ? 1 : 0.5;
     }
 
     function renderWaiting() {
