@@ -19,16 +19,7 @@ class UIManager {
         this.replayRuleEl = document.getElementById('replayRule');
         this.replayAdviceEl = document.getElementById('replayAdvice');
 
-        this.wechatTip = document.getElementById('wechatTip');
-
         this._bindEvents();
-    }
-
-    /**
-     * 检测是否在微信内置浏览器中
-     */
-    isWeChat() {
-        return /MicroMessenger/i.test(navigator.userAgent);
     }
 
     _bindEvents() {
@@ -44,21 +35,10 @@ class UIManager {
         // 控制模式选择
         document.querySelectorAll('.board-btn[data-control]').forEach(btn => {
             btn.addEventListener('click', () => {
-                const mode = btn.dataset.control;
-                // 在微信中选择重力感应时，提示用浏览器打开
-                if (mode === 'tilt' && this.isWeChat()) {
-                    this.showWeChatTip();
-                    return;
-                }
                 document.querySelectorAll('.board-btn[data-control]').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                this.selectedControl = mode;
+                this.selectedControl = btn.dataset.control;
             });
-        });
-
-        // 微信引导关闭按钮
-        document.getElementById('wechatCloseBtn').addEventListener('click', () => {
-            this.hideWeChatTip();
         });
 
         // 开始按钮
@@ -98,14 +78,6 @@ class UIManager {
         this.pauseScreen.classList.add('hidden');
         this.replayScreen.classList.add('hidden');
         this.hud.classList.remove('hidden');
-    }
-
-    showWeChatTip() {
-        this.wechatTip.classList.remove('hidden');
-    }
-
-    hideWeChatTip() {
-        this.wechatTip.classList.add('hidden');
     }
 
     showPause() {
