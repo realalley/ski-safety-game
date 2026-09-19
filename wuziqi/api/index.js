@@ -123,6 +123,11 @@ export default {
             return json({ success: false, error: 'Not Found' }, 404);
         }
 
+        // 版本检测
+        if (path === '/api/wuziqi/version') {
+            return json({ success: true, data: { version: 'text-mode-v2', timestamp: Date.now() } });
+        }
+
         const kv = new EdgeKV({ namespace: KV_NAMESPACE });
 
         try {
