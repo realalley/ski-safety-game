@@ -8,6 +8,7 @@ const Network = (function () {
     let pollCode = null;
     let pollCallback = null;
     let lastMoveAt = 0;
+    let unchangedCount = 0;
 
     /**
      * 获取或生成 playerId
@@ -90,6 +91,7 @@ const Network = (function () {
         stopPoll();
         pollCode = code;
         pollCallback = onUpdate;
+        unchangedCount = 0;
 
         const poll = async () => {
             if (!pollCode) return;
@@ -97,17 +99,27 @@ const Network = (function () {
                 const data = await getRoomState(pollCode);
                 if (data.room.lastMoveAt !== lastMoveAt || data.room.status !== 'playing') {
                     lastMoveAt = data.room.lastMoveAt;
+                    unchangedCount = 0;  // 有变化，重置计数
+                    schedulePoll(1500);
                     pollCallback(data.room);
+                } else {
+                    unchangedCount++;
+                    // 连续 10 次无变化后降频到 3s，减少空轮询
+                    const interval = unchangedCount > 10 ? 3000 : 1500;
+                    schedulePoll(interval);
                 }
             } catch (e) {
-                // 房间不存在或过期
                 pollCallback(null, e.message);
             }
         };
 
+        const schedulePoll = (delay) => {
+            if (pollTimer) clearTimeout(pollTimer);
+            pollTimer = setTimeout(poll, delay);
+        };
+
         // 立即执行一次
         poll();
-        pollTimer = setInterval(poll, 1500);
     }
 
     /**
@@ -115,11 +127,12 @@ const Network = (function () {
      */
     function stopPoll() {
         if (pollTimer) {
-            clearInterval(pollTimer);
+            clearTimeout(pollTimer);
             pollTimer = null;
         }
         pollCode = null;
         pollCallback = null;
+        unchangedCount = 0;
     }
 
     return {
