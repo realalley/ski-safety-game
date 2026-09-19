@@ -60,6 +60,10 @@ const Network = (function () {
         return api('/room/' + code + '/pass', 'POST', { playerId: getPlayerId() });
     }
 
+    async function getHint(code) {
+        return api('/room/' + code + '/hint', 'POST', { playerId: getPlayerId() });
+    }
+
     async function leaveRoom(code) {
         return api('/room/' + code + '/leave', 'POST', { playerId: getPlayerId() });
     }
@@ -95,5 +99,5 @@ const Network = (function () {
         pollCallback = null;
     }
 
-    return { getPlayerId, getPlayerName, setPlayerName, createRoom, joinRoom, getRoomState, startGame, playCards, pass, leaveRoom, startPoll, stopPoll };
+    return { getPlayerId, getPlayerName, setPlayerName, createRoom, joinRoom, getRoomState, startGame, playCards, pass, getHint, leaveRoom, startPoll, stopPoll };
 })();

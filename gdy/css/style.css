@@ -55,6 +55,7 @@ body {
 .opponent-area { flex: 0 0 auto; text-align: center; padding: 10px 0; }
 .opponent-info { margin-bottom: 6px; }
 .opponent-info .count { color: #a8d5a8; margin-left: 8px; font-size: 13px; }
+.opponent-info .cur-turn { color: #ffd700; font-weight: bold; }
 .alarm { color: #ff4444; font-weight: bold; margin-left: 8px; animation: blink 1s infinite; }
 @keyframes blink { 50% { opacity: .3; } }
 .opponent-cards { display: flex; justify-content: center; gap: -15px; }

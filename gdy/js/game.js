@@ -1,83 +1,67 @@
 /**
- * 游戏状态管理与 UI 渲染
+ * 游戏状态管理与 UI 渲染（支持2-3人）
  */
 const Game = (function () {
     let room = null;
     let myPlayerId = null;
     let myIndex = -1;
-    let selectedCards = new Set(); // 选中的牌索引
+    let selectedCards = new Set();
 
-    function init() {
-        myPlayerId = Network.getPlayerId();
-    }
-
-    function setRoom(r) {
-        room = r;
-        myIndex = r.players.findIndex(p => p.playerId === myPlayerId);
-    }
-
-    function getMyHand() {
-        if (myIndex < 0 || !room) return [];
-        return Cards.sortHand(room.players[myIndex].hand || []);
-    }
-
-    function getOpponent() {
-        if (!room) return null;
-        return room.players.find((p, i) => i !== myIndex);
-    }
-
-    function isMyTurn() {
-        return room && room.currentPlayer === myIndex;
-    }
-
-    function canPass() {
-        // 只有当上家出了牌（不是自由出牌）时才能过
-        return room && room.lastPlay && room.lastPlay.playerIndex !== myIndex;
-    }
+    function init() { myPlayerId = Network.getPlayerId(); }
+    function setRoom(r) { room = r; myIndex = r.players.findIndex(p => p.playerId === myPlayerId); }
+    function getMyHand() { return myIndex < 0 || !room ? [] : Cards.sortHand(room.players[myIndex].hand || []); }
+    function getOpponents() { return room ? room.players.filter((p, i) => i !== myIndex) : []; }
+    function isMyTurn() { return room && room.currentPlayer === myIndex; }
+    function canPass() { return room && room.lastPlay && room.lastPlay.playerIndex !== myIndex; }
 
     function toggleSelect(index) {
         if (selectedCards.has(index)) selectedCards.delete(index);
         else selectedCards.add(index);
     }
-
-    function clearSelection() {
-        selectedCards.clear();
-    }
-
+    function clearSelection() { selectedCards.clear(); }
     function getSelectedCards() {
         const hand = getMyHand();
         return Array.from(selectedCards).map(i => hand[i]).filter(Boolean);
     }
+    function setSelectedCards(cards) {
+        const hand = getMyHand();
+        selectedCards.clear();
+        cards.forEach(c => {
+            const idx = hand.findIndex(h => h.value === c.value && h.suit === c.suit);
+            if (idx >= 0) selectedCards.add(idx);
+        });
+    }
 
-    /**
-     * 渲染游戏界面
-     */
     function render() {
         if (!room) return;
         const hand = getMyHand();
-        const opponent = getOpponent();
+        const opponents = getOpponents();
 
-        // 房间号
         document.getElementById('game-room-code').textContent = '房间号: ' + room.roomCode;
-
-        // 回合提示
         const turnEl = document.getElementById('turn-indicator');
         if (room.status === 'playing') {
-            turnEl.textContent = isMyTurn() ? '轮到你出牌' : (opponent ? opponent.name + ' 出牌中...' : '');
-        } else {
-            turnEl.textContent = '';
-        }
+            const curName = room.players[room.currentPlayer] ? room.players[room.currentPlayer].name : '';
+            turnEl.textContent = isMyTurn() ? '轮到你出牌' : curName + ' 出牌中...';
+        } else { turnEl.textContent = ''; }
 
-        // 对手信息
-        if (opponent) {
-            document.getElementById('opponent-name').textContent = opponent.name;
-            document.getElementById('opponent-count').textContent = (opponent.hand ? opponent.hand.length : 0) + ' 张';
-            document.getElementById('opponent-alarm').style.display = (opponent.hand && opponent.hand.length === 1) ? 'inline' : 'none';
-            const backEl = document.getElementById('opponent-back');
-            backEl.innerHTML = '';
-            const cnt = opponent.hand ? opponent.hand.length : 0;
-            for (let i = 0; i < Math.min(cnt, 8); i++) backEl.appendChild(Cards.renderCardBack());
-        }
+        // 对手区域（支持多个对手）
+        const oppArea = document.querySelector('.opponent-area');
+        oppArea.innerHTML = '';
+        opponents.forEach(opp => {
+            const info = document.createElement('div');
+            info.className = 'opponent-info';
+            const isCur = room.currentPlayer === room.players.indexOf(opp);
+            const alarm = (opp.hand && opp.hand.length === 1) ? '<span class="alarm">报警!</span>' : '';
+            info.innerHTML = `<span class="${isCur ? 'cur-turn' : ''}">${opp.name}</span>
+                <span class="count">${opp.hand ? opp.hand.length : 0} 张</span>${alarm}`;
+            oppArea.appendChild(info);
+
+            const backWrap = document.createElement('div');
+            backWrap.className = 'opponent-cards';
+            const cnt = opp.hand ? opp.hand.length : 0;
+            for (let i = 0; i < Math.min(cnt, 8); i++) backWrap.appendChild(Cards.renderCardBack());
+            oppArea.appendChild(backWrap);
+        });
 
         // 我的信息
         document.getElementById('my-name').textContent = Network.getPlayerName();
@@ -106,17 +90,10 @@ const Game = (function () {
             lastPlayerEl.textContent = '自由出牌';
         }
 
-        // 消息
         const msgEl = document.getElementById('message');
-        if (room.passMessage) {
-            msgEl.textContent = room.passMessage;
-        } else if (room.status === 'waiting') {
-            msgEl.textContent = '等待开始...';
-        } else {
-            msgEl.textContent = '';
-        }
+        msgEl.textContent = room.passMessage || '';
 
-        // 按钮状态
+        // 按钮
         const btnPlay = document.getElementById('btn-play');
         const btnPass = document.getElementById('btn-pass');
         const myTurn = isMyTurn();
@@ -138,12 +115,7 @@ const Game = (function () {
             listEl.appendChild(el);
         });
         const btnStart = document.getElementById('btn-start');
-        if (room.players.length >= 2) {
-            btnStart.style.display = 'block';
-            btnStart.style.display = myIndex === 0 ? 'block' : 'none';
-        } else {
-            btnStart.style.display = 'none';
-        }
+        btnStart.style.display = (room.players.length >= 2 && myIndex === 0) ? 'block' : 'none';
     }
 
     function showScreen(id) {
@@ -151,5 +123,5 @@ const Game = (function () {
         document.getElementById(id).classList.add('active');
     }
 
-    return { init, setRoom, getMyHand, getOpponent, isMyTurn, canPass, getSelectedCards, clearSelection, render, renderWaiting, showScreen };
+    return { init, setRoom, getMyHand, getOpponents, isMyTurn, canPass, getSelectedCards, setSelectedCards, clearSelection, render, renderWaiting, showScreen };
 })();

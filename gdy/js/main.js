@@ -117,8 +117,16 @@
         } catch (e) { alert(e.message); }
     });
 
-    document.getElementById('btn-hint').addEventListener('click', () => {
-        alert('提示功能开发中');
+    document.getElementById('btn-hint').addEventListener('click', async () => {
+        try {
+            const data = await Network.getHint(currentCode);
+            if (data.cards && data.cards.length > 0) {
+                Game.setSelectedCards(data.cards);
+                Game.render();
+            } else {
+                alert('没有能压过上家的牌，选择过牌吧');
+            }
+        } catch (e) { alert(e.message); }
     });
 
     document.getElementById('btn-leave-game').addEventListener('click', () => {
@@ -145,9 +153,11 @@
         }
         contentEl.innerHTML = room.players.map(p => {
             const isWinner = p.hand && p.hand.length === 0;
+            const spring = p.isSpring ? ' 🌸春天' : '';
+            const score = p.score != null ? ` (${p.score > 0 ? '+' : ''}${p.score}分)` : '';
             return `<div class="result-item ${isWinner ? 'winner' : ''}">
-                <span>${p.name}${isWinner ? ' 🏆' : ''}</span>
-                <span>${p.hand ? p.hand.length : 0} 张</span>
+                <span>${p.name}${isWinner ? ' 🏆' : ''}${spring}</span>
+                <span>${p.hand ? p.hand.length : 0} 张${score}</span>
             </div>`;
         }).join('');
     }
