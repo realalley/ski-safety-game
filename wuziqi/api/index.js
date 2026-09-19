@@ -128,6 +128,11 @@ export default {
             return json({ success: true, data: { version: 'text-mode-v2', timestamp: Date.now() } });
         }
 
+        // KV 诊断：同一请求内写后立即读
+        if (path === '/api/wuziqi/diag' && request.method === 'GET') {
+            return await handleDiag(kv);
+        }
+
         const kv = new EdgeKV({ namespace: KV_NAMESPACE });
 
         try {
@@ -162,6 +167,48 @@ export default {
         }
     },
 };
+
+// ============ KV 诊断 ============
+
+async function handleDiag(kv) {
+    const testKey = 'diag-test';
+    const testValue = JSON.stringify({ hello: 'world', time: Date.now() });
+    const result = {};
+
+    // 写入
+    try {
+        await kv.put(testKey, testValue);
+        result.put = 'success';
+    } catch (e) {
+        result.put = 'error: ' + e.message;
+    }
+
+    // 立即读（text 模式）
+    try {
+        const val = await kv.get(testKey, { type: 'text' });
+        result.getText = val === undefined ? 'undefined' : (val === testValue ? 'match' : 'mismatch: ' + (val ? val.slice(0, 50) : 'null'));
+    } catch (e) {
+        result.getText = 'error: ' + e.message;
+    }
+
+    // 立即读（json 模式）
+    try {
+        const val = await kv.get(testKey, { type: 'json' });
+        result.getJson = val === undefined ? 'undefined' : 'parsed: ' + JSON.stringify(val).slice(0, 50);
+    } catch (e) {
+        result.getJson = 'error: ' + e.message;
+    }
+
+    // 读一个已知存在的旧 key（room-YC4ZP5）
+    try {
+        const oldVal = await kv.get('room-YC4ZP5', { type: 'text' });
+        result.oldRoom = oldVal === undefined ? 'undefined' : 'found (len=' + oldVal.length + ')';
+    } catch (e) {
+        result.oldRoom = 'error: ' + e.message;
+    }
+
+    return json({ success: true, data: result });
+}
 
 // ============ 处理函数 ============
 
