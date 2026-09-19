@@ -128,12 +128,12 @@ export default {
             return json({ success: true, data: { version: 'text-mode-v2', timestamp: Date.now() } });
         }
 
+        const kv = new EdgeKV({ namespace: KV_NAMESPACE });
+
         // KV 诊断：同一请求内写后立即读
         if (path === '/api/wuziqi/diag' && request.method === 'GET') {
             return await handleDiag(kv);
         }
-
-        const kv = new EdgeKV({ namespace: KV_NAMESPACE });
 
         try {
             // POST /api/wuziqi/room - 创建房间
