@@ -22,6 +22,21 @@ function json(data, status = 200) {
     });
 }
 
+/**
+ * 从 KV 读取并解析 JSON
+ * 用 text 模式读取后手动解析，避免 json 模式的潜在问题
+ */
+async function kvGetJSON(kv, key) {
+    const raw = await kv.get(key, { type: 'text' });
+    if (raw === undefined || raw === null || raw === '') return undefined;
+    try {
+        return JSON.parse(raw);
+    } catch (e) {
+        console.error('KV JSON parse error:', e.message, 'raw length:', raw.length);
+        return undefined;
+    }
+}
+
 function generateRoomCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';  // 去掉易混淆的 I/O/0/1
     let code = '';
@@ -162,7 +177,7 @@ async function handleCreateRoom(kv, request) {
     for (let i = 0; i < 3; i++) {
         code = generateRoomCode();
         key = 'room-' + code;
-        const existing = await kv.get(key, { type: 'json' });
+        const existing = await kvGetJSON(kv, key);
         if (!existing || Date.now() > existing.expiresAt) {
             break;
         }
@@ -201,7 +216,7 @@ async function handleCreateRoom(kv, request) {
  */
 async function handleGetRoom(kv, code) {
     const key = 'room-' + code;
-    const room = await kv.get(key, { type: 'json' });
+    const room = await kvGetJSON(kv, key);
 
     if (!room) {
         return json({ success: false, error: '房间不存在' }, 404);
@@ -228,7 +243,7 @@ async function handleJoinRoom(kv, code, request) {
     }
 
     const key = 'room-' + code;
-    const room = await kv.get(key, { type: 'json' });
+    const room = await kvGetJSON(kv, key);
 
     if (!room) {
         return json({ success: false, error: '房间不存在' }, 404);
@@ -279,7 +294,7 @@ async function handleMove(kv, code, request) {
     }
 
     const key = 'room-' + code;
-    const room = await kv.get(key, { type: 'json' });
+    const room = await kvGetJSON(kv, key);
 
     if (!room) {
         return json({ success: false, error: '房间不存在' }, 404);
@@ -342,7 +357,7 @@ async function handleResign(kv, code, request) {
     }
 
     const key = 'room-' + code;
-    const room = await kv.get(key, { type: 'json' });
+    const room = await kvGetJSON(kv, key);
 
     if (!room) {
         return json({ success: false, error: '房间不存在' }, 404);
