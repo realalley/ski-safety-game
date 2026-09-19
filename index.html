@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>滑雪安全避障</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- 游戏画布：底层渲染层 -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- UI 层：开始界面 -->
+    <div id="startScreen" class="screen">
+        <div class="screen-inner">
+            <h1 class="title">滑雪安全避障</h1>
+            <p class="subtitle">了解单板双板轨迹 · 提升安全意识</p>
+
+            <div class="board-select">
+                <p class="select-label">选择滑雪板类型</p>
+                <div class="board-options">
+                    <button class="board-btn active" data-board="ski">
+                        <span class="board-icon">⛷️</span>
+                        <span class="board-name">双板</span>
+                        <span class="board-desc">直线滑行 · 制动稳定</span>
+                    </button>
+                    <button class="board-btn" data-board="snowboard">
+                        <span class="board-icon">🏂</span>
+                        <span class="board-name">单板</span>
+                        <span class="board-desc">S型轨迹 · 转向灵活</span>
+                    </button>
+                </div>
+            </div>
+
+            <button id="startBtn" class="primary-btn">开始滑行</button>
+
+            <div class="tips">
+                <p>📱 左右滑动屏幕控制转向</p>
+                <p>⬇️ 下滑或按住减速</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- HUD 层：游戏中信息 -->
+    <div id="hud" class="hud hidden">
+        <div class="hud-top">
+            <div class="hud-item">
+                <span class="hud-label">速度</span>
+                <span id="speedValue" class="hud-value">0</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">距离</span>
+                <span id="distanceValue" class="hud-value">0m</span>
+            </div>
+        </div>
+        <button id="pauseBtn" class="pause-btn">⏸</button>
+    </div>
+
+    <!-- 暂停界面 -->
+    <div id="pauseScreen" class="screen hidden">
+        <div class="screen-inner">
+            <h2 class="title">已暂停</h2>
+            <button id="resumeBtn" class="primary-btn">继续滑行</button>
+            <button id="restartBtn" class="secondary-btn">重新开始</button>
+        </div>
+    </div>
+
+    <!-- 事故回放结果界面 -->
+    <div id="replayScreen" class="screen hidden">
+        <div class="screen-inner">
+            <h2 class="title">事故分析</h2>
+            <div id="replayFault" class="fault-badge"></div>
+            <div id="replayRule" class="rule-card"></div>
+            <div id="replayAdvice" class="advice-card"></div>
+            <button id="continueBtn" class="primary-btn">继续滑行</button>
+            <button id="replayRestartBtn" class="secondary-btn">重新开始</button>
+        </div>
+    </div>
+
+    <!-- 脚本 -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/trail.js"></script>
+    <script src="js/slope.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/aimanager.js"></script>
+    <script src="js/collision.js"></script>
+    <script src="js/replay.js"></script>
+    <script src="js/input.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+# 临时文件
+*.py
+screenshot_*.png
+.DS_Store
