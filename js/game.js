@@ -74,6 +74,7 @@ class Game {
         this.ui.onResume = () => this.resume();
         this.ui.onRestart = () => this.restart();
         this.ui.onContinue = () => this.continueAfterReplay();
+        this.ui.onSkipReplay = () => this.skipReplay();
     }
 
     async startGame(boardType, controlMode = 'touch') {
@@ -134,6 +135,7 @@ class Game {
         this.replayDone = false;
         this.replaySystem.reset();
         this.ui.hideReplay();
+        this.ui.hideSkipReplayBtn();
         // 重置玩家位置到安全处，清除附近AI
         this.player.alive = true;
         this.player.speed = Math.min(this.player.speed, 200);
@@ -209,6 +211,17 @@ class Game {
         this.inReplay = true;
         this.replayDone = false;
         this.replaySystem.startReplay(collisionResult);
+        this.ui.showSkipReplayBtn();
+    }
+
+    /**
+     * 跳过回放，直接显示结果
+     */
+    skipReplay() {
+        if (!this.inReplay || this.replayDone) return;
+        this.replayDone = true;
+        this.ui.hideSkipReplayBtn();
+        this.ui.showReplayResult(this.replaySystem.collisionResult);
     }
 
     /**
@@ -218,6 +231,7 @@ class Game {
         const finished = this.replaySystem.update(dt);
         if (finished && !this.replayDone) {
             this.replayDone = true;
+            this.ui.hideSkipReplayBtn();
             // 延迟显示结果界面，让玩家看到碰撞画面
             setTimeout(() => {
                 this.ui.showReplayResult(this.replaySystem.collisionResult);

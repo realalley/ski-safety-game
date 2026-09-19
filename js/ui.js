@@ -19,6 +19,8 @@ class UIManager {
         this.replayRuleEl = document.getElementById('replayRule');
         this.replayAdviceEl = document.getElementById('replayAdvice');
 
+        this.skipReplayBtn = document.getElementById('skipReplayBtn');
+
         this._bindEvents();
     }
 
@@ -64,6 +66,18 @@ class UIManager {
         document.getElementById('replayRestartBtn').addEventListener('click', () => {
             if (this.onRestart) this.onRestart();
         });
+        // 跳过回放按钮
+        this.skipReplayBtn.addEventListener('click', () => {
+            if (this.onSkipReplay) this.onSkipReplay();
+        });
+    }
+
+    showSkipReplayBtn() {
+        this.skipReplayBtn.classList.remove('hidden');
+    }
+
+    hideSkipReplayBtn() {
+        this.skipReplayBtn.classList.add('hidden');
     }
 
     showStart() {

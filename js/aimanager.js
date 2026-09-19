@@ -46,7 +46,7 @@ class AIManager {
         // ===== 生成新 AI =====
         this.spawnTimer -= dt;
         if (this.spawnTimer <= 0 && this.skierList.length < cfg.maxCount) {
-            this._spawnSkier(player.worldY, halfWidth);
+            this._spawnSkier(player, halfWidth);
             this.spawnTimer = cfg.spawnInterval * Utils.randomFloat(0.7, 1.3);
         }
 
@@ -63,13 +63,13 @@ class AIManager {
                 // 鱼雷从后方来，超过玩家前方很远才回收
                 return s.worldY < despawnAhead;
             } else {
-                // 其他 AI 从前方来，被甩在身后很远才回收
-                return s.worldY > despawnBehind;
+                // 其他AI：落后太远或超前太远都回收
+                return s.worldY > despawnBehind && s.worldY < despawnAhead;
             }
         });
     }
 
-    _spawnSkier(playerWorldY, halfWidth) {
+    _spawnSkier(player, halfWidth) {
         const cfg = CONFIG.ai;
 
         // 根据权重随机选择行为模式
@@ -78,16 +78,24 @@ class AIManager {
         // 单板双板比例 1:1
         const boardType = Math.random() < 0.5 ? BOARD_TYPE.SKI : BOARD_TYPE.SNOWBOARD;
 
-        // 生成位置：鱼雷型在玩家后方，其余在前方
+        // 玩家速度低（停下或很慢）时，部分AI从后方生成，让雪友从身后追上来
+        const playerSpeed = player.speed || 0;
+        const slowThreshold = 120; // 低于此速度视为"慢"
+        const spawnFromBehind = playerSpeed < slowThreshold && Math.random() < 0.5;
+
+        // 生成位置
         let worldY;
         if (behavior === AI_BEHAVIOR.TORPEDO) {
-            // 后方生成：worldY 小于玩家
-            worldY = playerWorldY - cfg.torpedo.spawnBehindDistance * Utils.randomFloat(0.8, 1.2);
+            // 鱼雷型在后方生成
+            worldY = player.worldY - cfg.torpedo.spawnBehindDistance * Utils.randomFloat(0.8, 1.2);
+        } else if (spawnFromBehind) {
+            // 玩家慢时，从后方生成正常速度的雪友
+            worldY = player.worldY - cfg.spawnAheadDistance * Utils.randomFloat(0.6, 1.0);
         } else if (behavior === AI_BEHAVIOR.CARVE) {
-            // 刻滑型生成稍远（现在周期短，不需要太远）
-            worldY = playerWorldY + cfg.spawnAheadDistance * Utils.randomFloat(1.0, 1.6);
+            // 刻滑型生成稍远
+            worldY = player.worldY + cfg.spawnAheadDistance * Utils.randomFloat(1.0, 1.6);
         } else {
-            worldY = playerWorldY + cfg.spawnAheadDistance * Utils.randomFloat(0.8, 1.2);
+            worldY = player.worldY + cfg.spawnAheadDistance * Utils.randomFloat(0.8, 1.2);
         }
 
         const x = Utils.randomFloat(-halfWidth * 0.8, halfWidth * 0.8);

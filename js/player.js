@@ -47,18 +47,25 @@ class Player {
         // ===== 速度控制 =====
         const cfg = this.config;
 
-        // 制动
         if (input.brake) {
+            // 触屏强制刹车（最高优先级）
             this.speed = Math.max(40, this.speed - cfg.brakePower * dt);
+        } else if (typeof input.speedInput === 'number' && Math.abs(input.speedInput) > 0.05) {
+            // 重力感应速度控制
+            if (input.speedInput > 0) {
+                // 前倾加速：加速度随前倾程度增强（最多 3 倍加速度）
+                const accel = cfg.acceleration * (1 + input.speedInput * 2);
+                this.speed = Math.min(cfg.maxSpeed, this.speed + accel * dt);
+            } else {
+                // 后仰减速：减速力度随后仰程度增强（最高 brakePower）
+                this.speed = Math.max(40, this.speed + input.speedInput * cfg.brakePower * dt);
+            }
         } else {
-            // 自然加速到最大速度
+            // 中性持机：自然加速到最大速度
             if (this.speed < cfg.maxSpeed) {
                 this.speed = Math.min(cfg.maxSpeed, this.speed + cfg.acceleration * dt);
             }
         }
-
-        // 自然摩擦减速（略）
-        // this.speed = Math.max(0, this.speed - cfg.friction * dt);
 
         // ===== 转向控制 =====
         // 目标角速度
