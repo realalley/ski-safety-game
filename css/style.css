@@ -376,3 +376,140 @@ html, body {
     50% { opacity: 1; }
 }
 
+/* ===== 关卡选择卡片 ===== */
+.level-select {
+    margin-bottom: 20px;
+}
+
+.level-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.level-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 8px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.level-card:active {
+    transform: scale(0.96);
+}
+
+.level-card.active {
+    background: rgba(255, 255, 255, 0.28);
+    border-color: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+
+.level-card.locked {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.level-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
+}
+
+.level-name {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.level-diff {
+    font-size: 12px;
+    opacity: 0.75;
+}
+
+.level-stars {
+    font-size: 13px;
+    letter-spacing: 1px;
+    min-height: 16px;
+}
+
+.level-lock {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 14px;
+}
+
+/* ===== HUD 距离进度条 ===== */
+.hud-distance {
+    flex: 1;
+    min-width: 0;
+}
+
+.distance-bar-bg {
+    margin-top: 4px;
+    height: 5px;
+    width: 100%;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+}
+
+.distance-bar {
+    height: 100%;
+    width: 0%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #66bb6a, #43a047);
+    transition: width 0.2s ease-out;
+}
+
+/* ===== 关卡结算界面 ===== */
+.settlement-stars {
+    font-size: 44px;
+    letter-spacing: 8px;
+    text-align: center;
+    margin: 16px 0 20px;
+    min-height: 52px;
+}
+
+.settlement-stars .star-dim {
+    opacity: 0.25;
+    filter: grayscale(1);
+}
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.stat-item {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 10px 12px;
+    text-align: center;
+}
+
+.stat-item .stat-label {
+    display: block;
+    font-size: 12px;
+    opacity: 0.75;
+    margin-bottom: 4px;
+}
+
+.stat-item .stat-value {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+}
+

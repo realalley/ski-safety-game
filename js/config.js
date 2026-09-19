@@ -118,6 +118,67 @@ const CONFIG = {
         recordDuration: 3.0,      // 回放记录时长（秒）
         playbackSpeed: 0.35,      // 回放速度倍率
     },
+
+    // 关卡配置：4 条雪道按难度递进
+    // behaviorWeights 中 torpedo/cross/carve 为用户给定，剩余概率按
+    // 原始 straight:safe:stationary 比例（0.545:0.318:0.137）分配，每行 sum=1
+    levels: [
+        {
+            id: 'green', name: '绿道', color: '#43a047', difficulty: '初级',
+            slopeWidthRatio: 0.92,
+            ai: {
+                maxCount: 4, spawnInterval: 2.6, speedScale: 0.70,
+                behaviorWeights: {
+                    straight: 0.38, carve: 0.20, cross: 0.05,
+                    safe: 0.22, stationary: 0.09, torpedo: 0.06,
+                },
+            },
+            targetDistance: 600,   // 目标距离（米）
+            overspeedThreshold: 420, // 超速阈值（px/s）
+        },
+        {
+            id: 'blue', name: '蓝道', color: '#1e88e5', difficulty: '中级',
+            slopeWidthRatio: 0.82,
+            ai: {
+                maxCount: 6, spawnInterval: 1.8, speedScale: 0.85,
+                behaviorWeights: {
+                    straight: 0.26, carve: 0.26, cross: 0.16,
+                    safe: 0.15, stationary: 0.07, torpedo: 0.10,
+                },
+            },
+            targetDistance: 900, overspeedThreshold: 400,
+        },
+        {
+            id: 'red', name: '红道', color: '#e53935', difficulty: '高级',
+            slopeWidthRatio: 0.70,
+            ai: {
+                maxCount: 8, spawnInterval: 1.3, speedScale: 1.00,
+                behaviorWeights: {
+                    straight: 0.20, carve: 0.26, cross: 0.22,
+                    safe: 0.11, stationary: 0.05, torpedo: 0.16,
+                },
+            },
+            targetDistance: 1100, overspeedThreshold: 380,
+        },
+        {
+            id: 'black', name: '黑道', color: '#212121', difficulty: '专家',
+            slopeWidthRatio: 0.58,
+            ai: {
+                maxCount: 10, spawnInterval: 0.9, speedScale: 1.15,
+                behaviorWeights: {
+                    straight: 0.15, carve: 0.24, cross: 0.26,
+                    safe: 0.09, stationary: 0.04, torpedo: 0.22,
+                },
+            },
+            targetDistance: 1300, overspeedThreshold: 360,
+        },
+    ],
+
+    // 关卡解锁顺序
+    levelOrder: ['green', 'blue', 'red', 'black'],
+
+    // 距离换算：1 米 = 20 像素
+    distanceScale: 20,
 };
 
 // AI 行为模式枚举
@@ -158,4 +219,13 @@ const GAME_STATE = {
     PLAYING: 'playing',
     PAUSED: 'paused',
     GAME_OVER: 'gameover',
+    SETTLEMENT: 'settlement',   // 关卡结算
+};
+
+// 关卡标识枚举
+const LEVEL_ID = {
+    GREEN: 'green',
+    BLUE: 'blue',
+    RED: 'red',
+    BLACK: 'black',
 };

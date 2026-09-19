@@ -21,6 +21,12 @@ class Game {
         this.collisionSystem = new CollisionSystem();
         this.replaySystem = new ReplaySystem();
 
+        // 关卡与进度
+        this.currentLevelId = null;
+        this.currentLevelConfig = null;
+        this.scoreTracker = null;
+        this.progressManager = new ProgressManager();
+
         // 回放控制
         this.inReplay = false;
         this.replayDone = false;
@@ -38,6 +44,8 @@ class Game {
         this._setupCanvas();
         this._bindUI();
         this._bindResize();
+        // 初始化关卡卡片显示（星数/解锁状态）
+        this.ui.refreshLevelCards(this.progressManager);
     }
 
     _setupCanvas() {
@@ -60,7 +68,7 @@ class Game {
         this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
 
         if (this.slope) {
-            this.slope.resize(w, h);
+            this.slope.resize(w, h, this.currentLevelConfig?.slopeWidthRatio);
         }
     }
 
@@ -69,17 +77,25 @@ class Game {
     }
 
     _bindUI() {
-        this.ui.onStart = (boardType, controlMode) => this.startGame(boardType, controlMode);
+        this.ui.onStart = (boardType, controlMode, levelId) => this.startGame(boardType, controlMode, levelId);
         this.ui.onPause = () => this.pause();
         this.ui.onResume = () => this.resume();
         this.ui.onRestart = () => this.restart();
         this.ui.onContinue = () => this.continueAfterReplay();
         this.ui.onSkipReplay = () => this.skipReplay();
+        this.ui.onSettlementNext = () => this._goToNextLevel();
+        this.ui.onSettlementReplay = () => this.restart();
+        this.ui.onSettlementMenu = () => this._backToMenu();
     }
 
-    async startGame(boardType, controlMode = 'touch') {
+    async startGame(boardType, controlMode = 'touch', levelId = LEVEL_ID.GREEN) {
         this.boardType = boardType;
         this.input.setControlMode(controlMode);
+
+        // 查找关卡配置
+        const levelConfig = CONFIG.levels.find(l => l.id === levelId) || CONFIG.levels[0];
+        this.currentLevelId = levelConfig.id;
+        this.currentLevelConfig = levelConfig;
 
         // 重力感应模式：请求权限并校准
         if (controlMode === 'tilt') {
@@ -94,12 +110,13 @@ class Game {
             }
         }
 
-        this.slope = new Slope(this.canvasW, this.canvasH);
+        this.slope = new Slope(this.canvasW, this.canvasH, levelConfig.slopeWidthRatio);
         this.player = new Player(boardType, this.slope.getWidth());
         this.trail = new TrailSystem(boardType);
-        this.aiManager = new AIManager(this.slope.getWidth());
+        this.aiManager = new AIManager(this.slope.getWidth(), levelConfig.ai);
         this.aiManager.prepopulate(this.player.worldY);  // 开局就在雪道上放几个AI
         this.replaySystem.reset();
+        this.scoreTracker = new ScoreTracker(levelConfig);
         this.inReplay = false;
         this.replayDone = false;
         this.input.reset();
@@ -108,6 +125,7 @@ class Game {
         this.state = GAME_STATE.PLAYING;
         this.ui.showGame();
         this.ui.hideReplay();
+        this.ui.hideSettlement();
     }
 
     pause() {
@@ -124,13 +142,14 @@ class Game {
     }
 
     restart() {
-        this.startGame(this.boardType);
+        this.startGame(this.boardType, this.input.controlMode, this.currentLevelId);
     }
 
     /**
      * 碰撞后继续滑行
      */
     continueAfterReplay() {
+        this.scoreTracker.recordContinue();  // 碰撞计数累加（已在 recordCollision 计，此接口预留扩展）
         this.inReplay = false;
         this.replayDone = false;
         this.replaySystem.reset();
@@ -181,6 +200,15 @@ class Game {
         this.aiManager.setSlopeWidth(this.slope.getWidth());
         this.aiManager.update(dt, this.player);
 
+        // 评分采集：每帧记录距离/超速
+        this.scoreTracker.recordFrame(this.player, this.aiManager.getSkierList(), dt);
+
+        // 目标距离判断：达到即结算
+        if (this.player.distance >= this.scoreTracker.targetDistancePx) {
+            this._finishLevel();
+            return;
+        }
+
         // 轨迹采样
         this.trail.addPoint(this.player.x, this.player.worldY, this.currentTime);
         this.trail.update(this.currentTime);
@@ -199,14 +227,20 @@ class Game {
             this._onCollision(collision);
         }
 
-        // HUD
-        this.ui.updateHUD(this.player.speed, this.player.distance);
+        // HUD：传目标距离和关卡名
+        this.ui.updateHUD(
+            this.player.speed,
+            this.player.distance,
+            this.currentLevelConfig.targetDistance,
+            this.currentLevelConfig.name
+        );
     }
 
     /**
      * 碰撞处理
      */
     _onCollision(collisionResult) {
+        this.scoreTracker.recordCollision(collisionResult.fault);  // 采集责任
         this.player.alive = false;
         this.inReplay = true;
         this.replayDone = false;
@@ -222,6 +256,48 @@ class Game {
         this.replayDone = true;
         this.ui.hideSkipReplayBtn();
         this.ui.showReplayResult(this.replaySystem.collisionResult);
+    }
+
+    /**
+     * 关卡完成：计算星级、更新进度、显示结算界面
+     */
+    _finishLevel() {
+        this.state = GAME_STATE.SETTLEMENT;
+        const result = this.scoreTracker.calculateStars(this.player);
+        this.progressManager.setStars(this.currentLevelId, result.stars);
+        const nextId = this.progressManager.getNextLevelId(this.currentLevelId);
+        const nextLevel = nextId ? CONFIG.levels.find(l => l.id === nextId) : null;
+        this.ui.showSettlement({
+            levelName: this.currentLevelConfig.name,
+            levelColor: this.currentLevelConfig.color,
+            stars: result.stars,
+            breakdown: result.breakdown,
+            stats: this.scoreTracker.getStats(),
+            locked: result.locked,
+            hasNext: nextLevel !== null && result.stars >= 2,
+            nextLevelName: nextLevel ? nextLevel.name : null,
+        });
+    }
+
+    /**
+     * 挑战下一关
+     */
+    _goToNextLevel() {
+        const nextId = this.progressManager.getNextLevelId(this.currentLevelId);
+        if (nextId) {
+            this.ui.hideSettlement();
+            this.startGame(this.boardType, this.input.controlMode, nextId);
+        }
+    }
+
+    /**
+     * 返回选关菜单
+     */
+    _backToMenu() {
+        this.state = GAME_STATE.MENU;
+        this.ui.hideSettlement();
+        this.ui.refreshLevelCards(this.progressManager);
+        this.ui.showStart();
     }
 
     /**

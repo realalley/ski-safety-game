@@ -3,12 +3,13 @@
  * 支持5种行为模式：直冲、S型刻滑、突然横穿、安全滑行、雪道停留
  */
 class AISkier {
-    constructor(behavior, boardType, x, worldY, color) {
+    constructor(behavior, boardType, x, worldY, color, speedScale = 1.0) {
         this.behavior = behavior;
         this.boardType = boardType;
         this.x = x;
         this.worldY = worldY;
         this.color = color;
+        this.speedScale = speedScale;
 
         this.speed = 0;
         this.heading = 0;
@@ -99,6 +100,8 @@ class AISkier {
                 this.color = tcfg.color;
                 break;
         }
+        // 关卡速度系数：统一缩放所有行为（含鱼雷）
+        this.speed *= this.speedScale;
     }
 
     update(dt, slopeWidth, player) {

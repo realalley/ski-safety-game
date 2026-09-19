@@ -3,10 +3,18 @@
  * 负责 AI 滑雪者的生成、更新、回收
  */
 class AIManager {
-    constructor(slopeWidth) {
+    constructor(slopeWidth, levelConfig) {
         this.skierList = [];
         this.slopeWidth = slopeWidth;
         this.spawnTimer = 0;
+        // 关卡 AI 配置（maxCount/spawnInterval/speedScale/behaviorWeights）
+        // 共享参数（spawnAheadDistance/despawnBehindDistance/torpedo/colors）仍读 CONFIG.ai
+        this.levelConfig = levelConfig || {
+            maxCount: CONFIG.ai.maxCount,
+            spawnInterval: CONFIG.ai.spawnInterval,
+            speedScale: 1.0,
+            behaviorWeights: CONFIG.ai.behaviorWeights,
+        };
     }
 
     setSlopeWidth(width) {
@@ -33,7 +41,7 @@ class AIManager {
             const x = Utils.randomFloat(-halfWidth * 0.7, halfWidth * 0.7);
             const worldY = playerWorldY + p.dist;
             const color = cfg.colors[Utils.randomInt(0, cfg.colors.length - 1)];
-            const skier = new AISkier(p.behavior, boardType, x, worldY, color);
+            const skier = new AISkier(p.behavior, boardType, x, worldY, color, this.levelConfig.speedScale);
             skier._initialX = x;
             this.skierList.push(skier);
         }
@@ -41,13 +49,14 @@ class AIManager {
 
     update(dt, player) {
         const cfg = CONFIG.ai;
+        const lcfg = this.levelConfig;
         const halfWidth = this.slopeWidth / 2 - CONFIG.player.radius;
 
         // ===== 生成新 AI =====
         this.spawnTimer -= dt;
-        if (this.spawnTimer <= 0 && this.skierList.length < cfg.maxCount) {
+        if (this.spawnTimer <= 0 && this.skierList.length < lcfg.maxCount) {
             this._spawnSkier(player, halfWidth);
-            this.spawnTimer = cfg.spawnInterval * Utils.randomFloat(0.7, 1.3);
+            this.spawnTimer = lcfg.spawnInterval * Utils.randomFloat(0.7, 1.3);
         }
 
         // ===== 更新现有 AI =====
@@ -103,14 +112,14 @@ class AIManager {
         // 颜色（鱼雷在 AISkier 构造中会用专用色覆盖）
         const color = cfg.colors[Utils.randomInt(0, cfg.colors.length - 1)];
 
-        const skier = new AISkier(behavior, boardType, x, worldY, color);
+        const skier = new AISkier(behavior, boardType, x, worldY, color, this.levelConfig.speedScale);
         // 记录横穿型的初始x
         skier._initialX = x;
         this.skierList.push(skier);
     }
 
     _pickBehavior() {
-        const weights = CONFIG.ai.behaviorWeights;
+        const weights = this.levelConfig.behaviorWeights;
         const total = Object.values(weights).reduce((a, b) => a + b, 0);
         let r = Math.random() * total;
         for (const [behavior, weight] of Object.entries(weights)) {

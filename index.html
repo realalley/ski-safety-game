@@ -18,6 +18,40 @@
             <h1 class="title">滑雪安全避障</h1>
             <p class="subtitle">了解单板双板轨迹 · 提升安全意识</p>
 
+            <div class="level-select">
+                <p class="select-label">选择雪道难度</p>
+                <div class="level-cards">
+                    <button class="level-card" data-level="green">
+                        <span class="level-dot" style="background:#43a047"></span>
+                        <span class="level-name">绿道</span>
+                        <span class="level-diff">初级</span>
+                        <span class="level-stars" data-stars-for="green"></span>
+                        <span class="level-lock hidden">🔒</span>
+                    </button>
+                    <button class="level-card" data-level="blue">
+                        <span class="level-dot" style="background:#1e88e5"></span>
+                        <span class="level-name">蓝道</span>
+                        <span class="level-diff">中级</span>
+                        <span class="level-stars" data-stars-for="blue"></span>
+                        <span class="level-lock hidden">🔒</span>
+                    </button>
+                    <button class="level-card" data-level="red">
+                        <span class="level-dot" style="background:#e53935"></span>
+                        <span class="level-name">红道</span>
+                        <span class="level-diff">高级</span>
+                        <span class="level-stars" data-stars-for="red"></span>
+                        <span class="level-lock hidden">🔒</span>
+                    </button>
+                    <button class="level-card" data-level="black">
+                        <span class="level-dot" style="background:#212121"></span>
+                        <span class="level-name">黑道</span>
+                        <span class="level-diff">专家</span>
+                        <span class="level-stars" data-stars-for="black"></span>
+                        <span class="level-lock hidden">🔒</span>
+                    </button>
+                </div>
+            </div>
+
             <div class="board-select">
                 <p class="select-label">选择滑雪板类型</p>
                 <div class="board-options">
@@ -68,8 +102,13 @@
                 <span id="speedValue" class="hud-value">0</span>
             </div>
             <div class="hud-item">
+                <span class="hud-label">雪道</span>
+                <span id="levelNameValue" class="hud-value">-</span>
+            </div>
+            <div class="hud-item hud-distance">
                 <span class="hud-label">距离</span>
-                <span id="distanceValue" class="hud-value">0m</span>
+                <span id="distanceValue" class="hud-value">0/600m</span>
+                <div class="distance-bar-bg"><div id="distanceBar" class="distance-bar"></div></div>
             </div>
         </div>
         <button id="skipReplayBtn" class="skip-replay-btn hidden">跳过回放 ⏭</button>
@@ -97,9 +136,23 @@
         </div>
     </div>
 
+    <!-- 关卡结算界面 -->
+    <div id="settlementScreen" class="screen hidden">
+        <div class="screen-inner">
+            <h2 id="settlementTitle" class="title">关卡完成</h2>
+            <div id="settlementStars" class="settlement-stars"></div>
+            <div id="settlementStats" class="stat-grid"></div>
+            <button id="settlementNextBtn" class="primary-btn">挑战下一关</button>
+            <button id="settlementReplayBtn" class="secondary-btn">重新挑战</button>
+            <button id="settlementMenuBtn" class="secondary-btn">返回选关</button>
+        </div>
+    </div>
+
     <!-- 脚本 -->
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
+    <script src="js/progression.js"></script>
+    <script src="js/score.js"></script>
     <script src="js/player.js"></script>
     <script src="js/trail.js"></script>
     <script src="js/slope.js"></script>

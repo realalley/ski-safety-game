@@ -6,20 +6,30 @@ class UIManager {
     constructor() {
         this.selectedBoard = BOARD_TYPE.SKI;
         this.selectedControl = 'touch';
+        this.selectedLevel = LEVEL_ID.GREEN;
 
         this.startScreen = document.getElementById('startScreen');
         this.pauseScreen = document.getElementById('pauseScreen');
         this.replayScreen = document.getElementById('replayScreen');
+        this.settlementScreen = document.getElementById('settlementScreen');
         this.hud = document.getElementById('hud');
 
         this.speedValueEl = document.getElementById('speedValue');
         this.distanceValueEl = document.getElementById('distanceValue');
+        this.distanceBarEl = document.getElementById('distanceBar');
+        this.levelNameEl = document.getElementById('levelNameValue');
 
         this.replayFaultEl = document.getElementById('replayFault');
         this.replayRuleEl = document.getElementById('replayRule');
         this.replayAdviceEl = document.getElementById('replayAdvice');
 
         this.skipReplayBtn = document.getElementById('skipReplayBtn');
+
+        // 结算界面元素
+        this.settlementTitleEl = document.getElementById('settlementTitle');
+        this.settlementStarsEl = document.getElementById('settlementStars');
+        this.settlementStatsEl = document.getElementById('settlementStats');
+        this.settlementNextBtn = document.getElementById('settlementNextBtn');
 
         this._bindEvents();
     }
@@ -43,9 +53,19 @@ class UIManager {
             });
         });
 
-        // 开始按钮
+        // 关卡选择（仅未锁定的可点）
+        document.querySelectorAll('.level-card[data-level]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (btn.classList.contains('locked')) return;
+                document.querySelectorAll('.level-card[data-level]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.selectedLevel = btn.dataset.level;
+            });
+        });
+
+        // 开始按钮：传 selectedLevel
         document.getElementById('startBtn').addEventListener('click', () => {
-            if (this.onStart) this.onStart(this.selectedBoard, this.selectedControl);
+            if (this.onStart) this.onStart(this.selectedBoard, this.selectedControl, this.selectedLevel);
         });
 
         // 暂停/继续/重开
@@ -70,6 +90,17 @@ class UIManager {
         this.skipReplayBtn.addEventListener('click', () => {
             if (this.onSkipReplay) this.onSkipReplay();
         });
+
+        // 结算界面按钮
+        this.settlementNextBtn.addEventListener('click', () => {
+            if (this.onSettlementNext) this.onSettlementNext();
+        });
+        document.getElementById('settlementReplayBtn').addEventListener('click', () => {
+            if (this.onSettlementReplay) this.onSettlementReplay();
+        });
+        document.getElementById('settlementMenuBtn').addEventListener('click', () => {
+            if (this.onSettlementMenu) this.onSettlementMenu();
+        });
     }
 
     showSkipReplayBtn() {
@@ -84,6 +115,7 @@ class UIManager {
         this.startScreen.classList.remove('hidden');
         this.pauseScreen.classList.add('hidden');
         this.replayScreen.classList.add('hidden');
+        this.settlementScreen.classList.add('hidden');
         this.hud.classList.add('hidden');
     }
 
@@ -91,6 +123,7 @@ class UIManager {
         this.startScreen.classList.add('hidden');
         this.pauseScreen.classList.add('hidden');
         this.replayScreen.classList.add('hidden');
+        this.settlementScreen.classList.add('hidden');
         this.hud.classList.remove('hidden');
     }
 
@@ -142,6 +175,92 @@ class UIManager {
     }
 
     /**
+     * 刷新关卡卡片：星数、解锁状态、默认选中最高解锁关
+     * 由 Game 在 showStart 前调用
+     */
+    refreshLevelCards(progressManager) {
+        const unlockedId = progressManager.getUnlockedLevelId();
+        const cards = document.querySelectorAll('.level-card[data-level]');
+        cards.forEach(card => {
+            const levelId = card.dataset.level;
+            const unlocked = progressManager.isUnlocked(levelId);
+            const stars = progressManager.getStars(levelId);
+
+            // 锁定状态
+            card.classList.toggle('locked', !unlocked);
+            const lockEl = card.querySelector('.level-lock');
+            if (lockEl) lockEl.classList.toggle('hidden', unlocked);
+
+            // 星级显示
+            const starsEl = card.querySelector('.level-stars');
+            if (starsEl) {
+                const filled = '⭐'.repeat(stars);
+                const empty = '☆'.repeat(3 - stars);
+                starsEl.textContent = filled + empty;
+            }
+
+            // 默认选中最高解锁关
+            card.classList.toggle('active', levelId === unlockedId);
+            if (levelId === unlockedId) this.selectedLevel = levelId;
+        });
+    }
+
+    /**
+     * 显示关卡结算界面
+     * result: { levelName, levelColor, stars, breakdown, stats, locked, hasNext, nextLevelName }
+     */
+    showSettlement(result) {
+        const { levelName, levelColor, stars, breakdown, stats, hasNext, nextLevelName } = result;
+
+        // 标题
+        this.settlementTitleEl.textContent = `${levelName}完成！`;
+        this.settlementTitleEl.style.color = levelColor;
+
+        // 星级（3 颗，未达灰显）
+        let starsHtml = '';
+        for (let i = 0; i < 3; i++) {
+            if (i < stars) starsHtml += '<span>⭐</span>';
+            else starsHtml += '<span class="star-dim">⭐</span>';
+        }
+        this.settlementStarsEl.innerHTML = starsHtml;
+
+        // 统计网格
+        const overspeedPct = Math.round(stats.overspeedRatio * 100);
+        this.settlementStatsEl.innerHTML = `
+            <div class="stat-item">
+                <span class="stat-label">滑行距离</span>
+                <span class="stat-value">${breakdown.distance_m}m</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">碰撞次数</span>
+                <span class="stat-value">${stats.collisionCount}次</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">玩家全责</span>
+                <span class="stat-value">${stats.playerFaultCount}次</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">超速占比</span>
+                <span class="stat-value">${overspeedPct}%</span>
+            </div>
+        `;
+
+        // 下一关按钮
+        if (hasNext && nextLevelName) {
+            this.settlementNextBtn.textContent = `挑战${nextLevelName}`;
+            this.settlementNextBtn.classList.remove('hidden');
+        } else {
+            this.settlementNextBtn.classList.add('hidden');
+        }
+
+        this.settlementScreen.classList.remove('hidden');
+    }
+
+    hideSettlement() {
+        this.settlementScreen.classList.add('hidden');
+    }
+
+    /**
      * 根据责任和违规类型给出避免建议
      */
     _getAdvice(fault, violation) {
@@ -169,10 +288,19 @@ class UIManager {
 
     /**
      * 更新 HUD 数值
+     * speed: 玩家速度(px/s)；distance: 像素累计距离；targetDistance: 目标距离(米)；levelName: 关卡名
      */
-    updateHUD(speed, distance) {
+    updateHUD(speed, distance, targetDistance, levelName) {
         const kmh = Math.round(speed * CONFIG.speedDisplay.factor);
+        const distance_m = Math.round(distance / CONFIG.distanceScale);
         this.speedValueEl.textContent = kmh;
-        this.distanceValueEl.textContent = Math.round(distance) + 'm';
+        if (targetDistance) {
+            this.distanceValueEl.textContent = `${distance_m}/${targetDistance}m`;
+            const progress = Math.min(1, distance_m / targetDistance);
+            if (this.distanceBarEl) this.distanceBarEl.style.width = (progress * 100) + '%';
+        } else {
+            this.distanceValueEl.textContent = distance_m + 'm';
+        }
+        if (this.levelNameEl && levelName) this.levelNameEl.textContent = levelName;
     }
 }

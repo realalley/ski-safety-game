@@ -3,10 +3,11 @@
  * 绘制雪道、边界、雪地纹理、飘落雪花
  */
 class Slope {
-    constructor(canvasW, canvasH) {
+    constructor(canvasW, canvasH, widthRatio) {
         this.canvasW = canvasW;
         this.canvasH = canvasH;
-        this.width = canvasW * CONFIG.slope.widthRatio;
+        this.widthRatio = widthRatio ?? CONFIG.slope.widthRatio;
+        this.width = canvasW * this.widthRatio;
 
         // 雪地纹理偏移（用于滚动）
         this.textureOffset = 0;
@@ -16,10 +17,11 @@ class Slope {
         this._initSnowflakes();
     }
 
-    resize(canvasW, canvasH) {
+    resize(canvasW, canvasH, widthRatio) {
         this.canvasW = canvasW;
         this.canvasH = canvasH;
-        this.width = canvasW * CONFIG.slope.widthRatio;
+        if (widthRatio !== undefined) this.widthRatio = widthRatio;
+        this.width = canvasW * this.widthRatio;
     }
 
     _initSnowflakes() {
