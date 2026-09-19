@@ -37,7 +37,7 @@ const Game = (function () {
         const hand = getMyHand();
         const opponents = getOpponents();
 
-        document.getElementById('game-room-code').textContent = '房间号: ' + room.roomCode;
+        document.getElementById('game-room-code').textContent = '#' + room.roomCode;
         const turnEl = document.getElementById('turn-indicator');
         if (room.status === 'playing') {
             const curName = room.players[room.currentPlayer] ? room.players[room.currentPlayer].name : '';
