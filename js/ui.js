@@ -5,6 +5,7 @@
 class UIManager {
     constructor() {
         this.selectedBoard = BOARD_TYPE.SKI;
+        this.selectedControl = 'touch';
 
         this.startScreen = document.getElementById('startScreen');
         this.pauseScreen = document.getElementById('pauseScreen');
@@ -23,17 +24,26 @@ class UIManager {
 
     _bindEvents() {
         // 滑雪板选择
-        document.querySelectorAll('.board-btn').forEach(btn => {
+        document.querySelectorAll('.board-btn[data-board]').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelectorAll('.board-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.board-btn[data-board]').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 this.selectedBoard = btn.dataset.board;
             });
         });
 
+        // 控制模式选择
+        document.querySelectorAll('.board-btn[data-control]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.board-btn[data-control]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.selectedControl = btn.dataset.control;
+            });
+        });
+
         // 开始按钮
         document.getElementById('startBtn').addEventListener('click', () => {
-            if (this.onStart) this.onStart(this.selectedBoard);
+            if (this.onStart) this.onStart(this.selectedBoard, this.selectedControl);
         });
 
         // 暂停/继续/重开

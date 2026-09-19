@@ -69,15 +69,30 @@ class Game {
     }
 
     _bindUI() {
-        this.ui.onStart = (boardType) => this.startGame(boardType);
+        this.ui.onStart = (boardType, controlMode) => this.startGame(boardType, controlMode);
         this.ui.onPause = () => this.pause();
         this.ui.onResume = () => this.resume();
         this.ui.onRestart = () => this.restart();
         this.ui.onContinue = () => this.continueAfterReplay();
     }
 
-    startGame(boardType) {
+    async startGame(boardType, controlMode = 'touch') {
         this.boardType = boardType;
+        this.input.setControlMode(controlMode);
+
+        // 重力感应模式：请求权限并校准
+        if (controlMode === 'tilt') {
+            const granted = await this.input.requestTiltPermission();
+            if (!granted) {
+                // 权限被拒，回退到触屏模式
+                this.input.setControlMode('touch');
+                alert('重力感应权限未开启，已切换为触屏模式');
+            } else {
+                // 延迟校准，等待传感器数据稳定
+                setTimeout(() => this.input.calibrateTilt(), 300);
+            }
+        }
+
         this.slope = new Slope(this.canvasW, this.canvasH);
         this.player = new Player(boardType, this.slope.getWidth());
         this.trail = new TrailSystem(boardType);

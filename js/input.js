@@ -1,10 +1,14 @@
 /**
- * 输入处理：触屏 + 键盘
+ * 输入处理：触屏 + 键盘 + 重力感应
  *
  * 触屏操作：
  * - 左半屏触摸 → 左转
  * - 右半屏触摸 → 右转
  * - 触摸点位于屏幕下半部分 → 减速
+ *
+ * 重力感应：
+ * - 手机左右倾斜 → 控制方向
+ * - 点击屏幕 → 减速
  *
  * 键盘操作：
  * - ArrowLeft / A → 左转
@@ -18,12 +22,74 @@ class InputManager {
         // 是否减速
         this.brake = false;
 
+        // 控制模式：'touch' 或 'tilt'
+        this.controlMode = 'touch';
+
+        // 陀螺仪相关
+        this.tiltEnabled = false;
+        this.tiltCalibrated = false;
+        this.tiltZero = 0;        // 校准的零点 gamma
+        this.tiltGamma = 0;       // 当前 gamma 值
+        this.tiltMaxAngle = 25;   // 最大倾斜角度（度），超过此角度达到满转向
+
         // 触屏追踪
         this.activeTouch = null;
         this.touchStartY = 0;
         this.touchCurrentY = 0;
 
         this._bindEvents();
+    }
+
+    /**
+     * 请求陀螺仪权限（iOS 13+ 需要）
+     */
+    async requestTiltPermission() {
+        if (typeof DeviceOrientationEvent === 'undefined') {
+            return false;
+        }
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            try {
+                const permission = await DeviceOrientationEvent.requestPermission();
+                if (permission === 'granted') {
+                    this._enableTilt();
+                    return true;
+                }
+                return false;
+            } catch (e) {
+                return false;
+            }
+        } else {
+            // 非 iOS 设备直接启用
+            this._enableTilt();
+            return true;
+        }
+    }
+
+    _enableTilt() {
+        this.tiltEnabled = true;
+        window.addEventListener('deviceorientation', (e) => this._onDeviceOrientation(e));
+    }
+
+    _onDeviceOrientation(e) {
+        // gamma: 左右倾斜，范围 -90 ~ 90
+        if (e.gamma !== null) {
+            this.tiltGamma = e.gamma;
+        }
+    }
+
+    /**
+     * 校准陀螺仪零点（以当前持机角度为正中）
+     */
+    calibrateTilt() {
+        this.tiltZero = this.tiltGamma;
+        this.tiltCalibrated = true;
+    }
+
+    setControlMode(mode) {
+        this.controlMode = mode;
+        if (mode === 'tilt') {
+            this.turnInput = 0;
+        }
     }
 
     _bindEvents() {
@@ -88,7 +154,12 @@ class InputManager {
         this.touchStartY = touch.clientY;
         this.touchCurrentY = touch.clientY;
 
-        this._updateTouchInput(touch);
+        if (this.controlMode === 'tilt') {
+            // 重力感应模式：触屏只用于减速
+            this.brake = true;
+        } else {
+            this._updateTouchInput(touch);
+        }
     }
 
     _onTouchMove(e) {
@@ -99,7 +170,9 @@ class InputManager {
         if (!touch) return;
 
         this.touchCurrentY = touch.clientY;
-        this._updateTouchInput(touch);
+        if (this.controlMode !== 'tilt') {
+            this._updateTouchInput(touch);
+        }
     }
 
     _onTouchEnd(e) {
@@ -110,7 +183,9 @@ class InputManager {
         const touch = this._findTouch(e.touches, this.activeTouch);
         if (!touch) {
             this.activeTouch = null;
-            this.turnInput = 0;
+            if (this.controlMode !== 'tilt') {
+                this.turnInput = 0;
+            }
             this.brake = false;
         }
     }
@@ -139,10 +214,15 @@ class InputManager {
     }
 
     /**
-     * 每帧重置瞬态输入（持续型输入由事件维护，这里无需额外处理）
+     * 每帧更新输入
      */
     update() {
-        // turnInput 和 brake 由事件持续维护
+        if (this.controlMode === 'tilt' && this.tiltEnabled && this.tiltCalibrated) {
+            // 根据左右倾斜角度计算转向输入
+            const offset = this.tiltGamma - this.tiltZero;
+            // 归一化：tiltMaxAngle 度对应满转向
+            this.turnInput = Utils.clamp(offset / this.tiltMaxAngle, -1, 1);
+        }
     }
 
     /**
