@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>五子棋对战</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- 游戏画布 -->
+    <canvas id="board"></canvas>
+
+    <!-- 主菜单 -->
+    <div id="menuScreen" class="screen">
+        <div class="screen-inner">
+            <h1 class="title">五子棋对战</h1>
+            <p class="subtitle">两人在线 · 五连即胜</p>
+
+            <button id="createBtn" class="primary-btn">创建房间</button>
+
+            <div class="divider"></div>
+
+            <div class="join-box">
+                <input id="joinInput" class="join-input" type="text" placeholder="输入房间号" maxlength="6" autocomplete="off">
+                <button id="joinBtn" class="secondary-btn">加入</button>
+            </div>
+
+            <div class="tips">
+                <p>创建房间后分享房间号给好友</p>
+                <p>好友输入房间号即可加入对战</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 等待对手 -->
+    <div id="waitingScreen" class="screen hidden">
+        <div class="screen-inner">
+            <h2 class="title">等待对手加入</h2>
+            <div class="room-code-box">
+                <span class="room-code-label">房间号</span>
+                <span id="roomCodeDisplay" class="room-code">------</span>
+            </div>
+            <button id="copyBtn" class="secondary-btn">复制房间号</button>
+            <p id="waitingTip" class="waiting-tip">等待好友加入…</p>
+            <button id="cancelWaitBtn" class="secondary-btn">返回菜单</button>
+        </div>
+    </div>
+
+    <!-- 游戏中 HUD -->
+    <div id="hud" class="hud hidden">
+        <div class="hud-top">
+            <div class="hud-item">
+                <span class="hud-label">房间</span>
+                <span id="hudRoomCode" class="hud-value">------</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">我方</span>
+                <span id="hudMyColor" class="hud-value">-</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">回合</span>
+                <span id="hudTurn" class="hud-value">-</span>
+            </div>
+        </div>
+        <button id="resignBtn" class="resign-btn">认输</button>
+    </div>
+
+    <!-- 对局结束 -->
+    <div id="resultScreen" class="screen hidden">
+        <div class="screen-inner">
+            <h2 id="resultTitle" class="title">对局结束</h2>
+            <div id="resultDetail" class="result-detail"></div>
+            <button id="backMenuBtn" class="primary-btn">返回菜单</button>
+        </div>
+    </div>
+
+    <!-- 提示弹窗 -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="js/board.js"></script>
+    <script src="js/network.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
