@@ -1,0 +1,39 @@
+edition: 1.0.0
+name: wuziqi-api
+access: default
+vars:
+  region: cn-hangzhou
+  service: wuziqi
+  function: api
+
+services:
+  wuziqi-api:
+    component: fc
+    props:
+      region: ${vars.region}
+      service:
+        name: ${vars.service}
+        description: 五子棋在线对战 API
+      function:
+        name: ${vars.function}
+        description: 五子棋在线对战 API
+        runtime: nodejs16
+        codeUri: ./
+        handler: index.handler
+        memorySize: 256
+        timeout: 30
+        environmentVariables:
+          OTS_ENDPOINT: https://wuziqi.cn-hangzhou.ots.aliyuncs.com
+          OTS_INSTANCE: wuziqi
+          OTS_TABLE_NAME: room
+          OTS_AK_ID: ${env.OTS_AK_ID}
+          OTS_AK_SECRET: ${env.OTS_AK_SECRET}
+      triggers:
+        - name: httpTrigger
+          type: http
+          config:
+            authType: anonymous
+            methods:
+              - GET
+              - POST
+              - OPTIONS

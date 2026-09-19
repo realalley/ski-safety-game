@@ -2,3 +2,19 @@
 *.py
 screenshot_*.png
 .DS_Store
+
+# Node
+node_modules/
+wuziqi/fc/node_modules/
+
+# IDE/工具
+.trae/
+wuziqi/.workbuddy/
+wuziqi/outputs/
+wuziqi/fc/.s/
+
+# FC 部署脚本（含密钥，不提交）
+wuziqi/fc/create_instance.js
+wuziqi/fc/create_table.js
+wuziqi/fc/get_account.js
+wuziqi/fc/ots.js

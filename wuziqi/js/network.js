@@ -3,7 +3,7 @@
  * 负责与边缘函数 API 通信、玩家身份管理、轮询对手状态
  */
 const Network = (function () {
-    const API_BASE = '/api/wuziqi';
+    const API_BASE = 'https://api-wuziqi-hwjfijsltb.cn-hangzhou.fcapp.run/api/wuziqi';
     let pollTimer = null;
     let pollCode = null;
     let pollCallback = null;

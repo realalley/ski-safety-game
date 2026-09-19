@@ -1,6 +1,5 @@
 {
   "name": "ski-safety-game",
-  "entry": "./wuziqi/api/index.js",
   "installCommand": "",
   "buildCommand": "",
   "assets": {

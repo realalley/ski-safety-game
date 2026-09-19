@@ -1,0 +1,12 @@
+{
+  "name": "wuziqi-fc",
+  "version": "1.0.0",
+  "description": "五子棋在线对战 FC 函数（Tablestore 强一致存储）",
+  "main": "index.js",
+  "dependencies": {
+    "@alicloud/openapi-client": "^0.4.15",
+    "@alicloud/ots20160620": "^1.0.1",
+    "@alicloud/tea-util": "^1.4.11",
+    "tablestore": "^5.6.0"
+  }
+}
