@@ -6,26 +6,47 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>围棋</title>
-    <link rel="stylesheet" href="css/style.css?v=1">
+    <link rel="stylesheet" href="css/style.css?v=2">
 </head>
 <body>
     <!-- 主菜单 -->
     <div id="menuScreen" class="screen active">
         <div class="menu-container">
+            <div class="logo-wrap">
+                <div class="logo-stone black-stone"></div>
+                <div class="logo-stone white-stone"></div>
+            </div>
             <h1 class="app-title">围棋</h1>
             <p class="app-subtitle">在线对弈</p>
 
             <div class="menu-card glass">
-                <label class="input-label">选择棋盘大小</label>
+                <label class="input-label">棋盘大小</label>
                 <div class="size-selector">
-                    <button class="size-btn active" data-size="19">19 × 19</button>
-                    <button class="size-btn" data-size="13">13 × 13</button>
-                    <button class="size-btn" data-size="9">9 × 9</button>
+                    <button class="size-btn active" data-size="19">19路</button>
+                    <button class="size-btn" data-size="13">13路</button>
+                    <button class="size-btn" data-size="9">9路</button>
+                </div>
+
+                <label class="input-label">执色</label>
+                <div class="color-selector">
+                    <button class="color-btn active" data-color="random">
+                        <span class="color-dot black"></span>
+                        <span class="color-dot white"></span>
+                        <span>随机</span>
+                    </button>
+                    <button class="color-btn" data-color="black">
+                        <span class="color-dot black"></span>
+                        <span>执黑</span>
+                    </button>
+                    <button class="color-btn" data-color="white">
+                        <span class="color-dot white"></span>
+                        <span>执白</span>
+                    </button>
                 </div>
 
                 <button id="createBtn" class="btn btn-primary">创建房间</button>
-                <div class="divider"><span>或</span></div>
-                <input id="roomCodeInput" class="input" type="text" placeholder="输入房间号" maxlength="6">
+                <div class="divider"><span>或输入房间号加入</span></div>
+                <input id="roomCodeInput" class="input" type="text" placeholder="房间号" maxlength="6">
                 <button id="joinBtn" class="btn btn-secondary">加入房间</button>
             </div>
         </div>
@@ -34,13 +55,22 @@
     <!-- 等待界面 -->
     <div id="waitScreen" class="screen">
         <div class="wait-card glass">
+            <div class="wait-icon">⏳</div>
             <h2>等待对手加入</h2>
             <div class="room-code-display">
                 <span class="room-code-label">房间号</span>
                 <span id="roomCodeDisplay" class="room-code">-</span>
             </div>
-            <p class="wait-tip">把房间号分享给朋友即可开始对弈</p>
-            <button id="cancelWaitBtn" class="btn btn-secondary">取消</button>
+            <div class="share-btns">
+                <button id="copyBtn" class="btn btn-secondary btn-sm">
+                    <span class="btn-icon">📋</span> 复制房间号
+                </button>
+                <button id="shareBtn" class="btn btn-secondary btn-sm">
+                    <span class="btn-icon">🔗</span> 分享链接
+                </button>
+            </div>
+            <p class="wait-tip">把链接或房间号发给朋友即可开始对弈</p>
+            <button id="cancelWaitBtn" class="btn btn-ghost">取消</button>
         </div>
     </div>
 
@@ -50,6 +80,7 @@
             <button id="backBtn" class="icon-btn">‹</button>
             <div class="game-title">
                 <span id="gameRoomCode" class="room-code-small">-</span>
+                <span id="myColorTag" class="color-tag"></span>
             </div>
             <div class="turn-indicator" id="turnIndicator">
                 <span class="turn-dot"></span>
@@ -61,11 +92,17 @@
             <div class="capture-info">
                 <div class="capture-item">
                     <span class="stone-icon black"></span>
-                    <span>提子: <span id="blackCaptures">0</span></span>
+                    <span class="capture-label">黑方提子</span>
+                    <span id="blackCaptures" class="capture-num">0</span>
+                </div>
+                <div class="pass-indicator" id="passIndicator" style="display:none;">
+                    <span class="pass-badge">停一手</span>
+                    <span id="passCount">0</span>/2
                 </div>
                 <div class="capture-item">
                     <span class="stone-icon white"></span>
-                    <span>提子: <span id="whiteCaptures">0</span></span>
+                    <span class="capture-label">白方提子</span>
+                    <span id="whiteCaptures" class="capture-num">0</span>
                 </div>
             </div>
 
@@ -83,6 +120,7 @@
     <!-- 结算弹窗 -->
     <div id="resultModal" class="modal">
         <div class="modal-content glass">
+            <div id="resultIcon" class="result-icon"></div>
             <h2 id="resultTitle">对局结束</h2>
             <div id="resultScore" class="result-score"></div>
             <p id="resultMessage" class="result-msg"></p>
@@ -93,9 +131,9 @@
     <!-- Toast -->
     <div id="toast" class="toast hidden"></div>
 
-    <script src="js/network.js?v=1"></script>
-    <script src="js/board.js?v=1"></script>
-    <script src="js/game.js?v=1"></script>
-    <script src="js/main.js?v=1"></script>
+    <script src="js/network.js?v=2"></script>
+    <script src="js/board.js?v=2"></script>
+    <script src="js/game.js?v=2"></script>
+    <script src="js/main.js?v=2"></script>
 </body>
 </html>

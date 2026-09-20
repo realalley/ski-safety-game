@@ -220,6 +220,7 @@ async function handleCreateRoom(req, resp) {
     const body = await readBody(req);
     const playerId = body.playerId;
     const boardSize = body.boardSize || 19;
+    const colorChoice = body.color || 'random'; // black / white / random
     if (!playerId) return fail(resp, '缺少 playerId', 400);
     if (![9, 13, 19].includes(boardSize)) return fail(resp, '棋盘大小不支持', 400);
 
@@ -230,18 +231,23 @@ async function handleCreateRoom(req, resp) {
         if (!existing || Date.now() > existing.expiresAt) break;
     }
 
+    // 决定创建者执色
+    let creatorColor = 1;
+    if (colorChoice === 'white') creatorColor = 2;
+    else if (colorChoice === 'random') creatorColor = Math.random() < 0.5 ? 1 : 2;
+
     const now = Date.now();
     const room = {
         boardSize,
         board: generateEmptyBoard(boardSize),
         currentTurn: 1, // 黑先
-        blackPlayer: playerId,
-        whitePlayer: null,
+        blackPlayer: creatorColor === 1 ? playerId : null,
+        whitePlayer: creatorColor === 2 ? playerId : null,
         status: 'waiting',
         winner: null,
         score: null,
         moves: [],
-        captures: { 1: 0, 2: 0 }, // 黑方提子数、白方提子数
+        captures: { 1: 0, 2: 0 },
         koPoint: null,
         consecutivePasses: 0,
         createdAt: now,
@@ -249,7 +255,7 @@ async function handleCreateRoom(req, resp) {
         expiresAt: now + ROOM_EXPIRE_MS,
     };
     await roomPut(code, room);
-    json(resp, { success: true, data: { roomCode: code, playerId, color: 1, room } });
+    json(resp, { success: true, data: { roomCode: code, playerId, color: creatorColor, room } });
 }
 
 async function handleGetRoom(code, resp) {

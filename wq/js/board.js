@@ -15,8 +15,8 @@ const Board = (function () {
     let myColor = 1; // 1=黑, 2=白
 
     function resize() {
-        const maxW = Math.min(window.innerWidth - 24, 560);
-        const maxH = window.innerHeight * 0.62;
+        const maxW = Math.min(window.innerWidth - 16, 600);
+        const maxH = window.innerHeight * 0.72;
         const size = Math.min(maxW, maxH);
         canvasSize = size;
         cellSize = (size - padding * 2) / (boardSize - 1);

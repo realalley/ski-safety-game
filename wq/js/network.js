@@ -17,6 +17,18 @@ const Network = (function () {
         return id;
     }
 
+    function saveSession(roomCode) {
+        localStorage.setItem('wq_roomCode', roomCode);
+    }
+
+    function getSavedRoomCode() {
+        return localStorage.getItem('wq_roomCode');
+    }
+
+    function clearSession() {
+        localStorage.removeItem('wq_roomCode');
+    }
+
     async function api(path, method = 'GET', body = null) {
         const opts = { method, headers: { 'Content-Type': 'application/json' } };
         if (body) opts.body = JSON.stringify(body);
@@ -26,8 +38,8 @@ const Network = (function () {
         return data.data;
     }
 
-    async function createRoom(boardSize) {
-        return api('/room', 'POST', { playerId: getPlayerId(), boardSize });
+    async function createRoom(boardSize, color) {
+        return api('/room', 'POST', { playerId: getPlayerId(), boardSize, color });
     }
 
     async function joinRoom(code) {
@@ -80,5 +92,9 @@ const Network = (function () {
         pollCallback = null;
     }
 
-    return { getPlayerId, createRoom, joinRoom, getRoomState, makeMove, pass, resign, startPoll, stopPoll };
+    return {
+        getPlayerId, saveSession, getSavedRoomCode, clearSession,
+        createRoom, joinRoom, getRoomState, makeMove, pass, resign,
+        startPoll, stopPoll,
+    };
 })();
