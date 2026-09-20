@@ -14,67 +14,64 @@ const Board = (function () {
     let boardWidth = 0;
     let boardHeight = 0;
 
-    // 棋子中文名称
     const PIECE_NAMES = {
         red: { general: '帅', advisor: '仕', elephant: '相', horse: '马', chariot: '车', cannon: '炮', soldier: '兵' },
         black: { general: '将', advisor: '士', elephant: '象', horse: '马', chariot: '车', cannon: '炮', soldier: '卒' },
     };
 
-    let selected = null;        // {x, y}
-    let validMoves = [];        // [{x, y}]
-    let lastMove = null;        // {from, to}
+    let selected = null;
+    let validMoves = [];
+    let lastMove = null;
     let onClickCallback = null;
     let myColor = 'red';
 
-    /**
-     * 调整画布尺寸，适配屏幕
-     */
     function resize() {
-        const maxWidth = Math.min(window.innerWidth, 500) - 16;
-        const maxHeight = window.innerHeight * 0.62;
-        const aspect = (COLS - 1) / (ROWS - 1); // 宽高比
-        let w = maxWidth;
-        let h = w / aspect;
-        if (h > maxHeight) { h = maxHeight; w = h * aspect; }
+        const maxWidth = Math.min(window.innerWidth, 500) - 20;
+        const maxHeight = window.innerHeight * 0.6;
+        // 棋盘内容宽高 = (COLS-1)*cellSize 和 (ROWS-1)*cellSize
+        // 加上左右 padding 各 cellSize/2，总占 COLS*cellSize 和 ROWS*cellSize
+        const cellW = maxWidth / COLS;
+        const cellH = maxHeight / ROWS;
+        cellSize = Math.min(cellW, cellH);
+
+        boardWidth = (COLS - 1) * cellSize + cellSize;
+        boardHeight = (ROWS - 1) * cellSize + cellSize;
 
         const dpr = window.devicePixelRatio || 1;
-        canvas.style.width = w + 'px';
-        canvas.style.height = h + 'px';
-        canvas.width = w * dpr;
-        canvas.height = h * dpr;
+        canvas.style.width = boardWidth + 'px';
+        canvas.style.height = boardHeight + 'px';
+        canvas.width = boardWidth * dpr;
+        canvas.height = boardHeight * dpr;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-        cellSize = w / (COLS - 1);
         paddingX = cellSize / 2;
         paddingY = cellSize / 2;
-        boardWidth = w;
-        boardHeight = h;
     }
 
-    /**
-     * 坐标转换：棋盘坐标 -> 画布像素
-     */
+    // 坐标转换：棋盘坐标 -> 画布像素（黑方翻转视角）
     function toPixel(x, y) {
+        if (myColor === 'black') {
+            x = COLS - 1 - x;
+            y = ROWS - 1 - y;
+        }
         return { px: paddingX + x * cellSize, py: paddingY + y * cellSize };
     }
 
-    /**
-     * 坐标转换：画布像素 -> 棋盘坐标
-     */
+    // 画布像素 -> 棋盘坐标
     function toBoard(px, py) {
-        const x = Math.round((px - paddingX) / cellSize);
-        const y = Math.round((py - paddingY) / cellSize);
+        let x = Math.round((px - paddingX) / cellSize);
+        let y = Math.round((py - paddingY) / cellSize);
+        if (myColor === 'black') {
+            x = COLS - 1 - x;
+            y = ROWS - 1 - y;
+        }
         if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return null;
         return { x, y };
     }
 
-    /**
-     * 绘制整个棋盘
-     */
     function draw(board) {
         ctx.clearRect(0, 0, boardWidth, boardHeight);
 
-        // 背景（木纹色）
         const grad = ctx.createLinearGradient(0, 0, 0, boardHeight);
         grad.addColorStop(0, '#f0d9a8');
         grad.addColorStop(1, '#e8c887');
@@ -90,7 +87,7 @@ const Board = (function () {
         ctx.strokeStyle = '#5a3a1a';
         ctx.lineWidth = 1.2;
 
-        // 横线（10条）
+        // 横线
         for (let y = 0; y < ROWS; y++) {
             const { py } = toPixel(0, y);
             ctx.beginPath();
@@ -99,11 +96,10 @@ const Board = (function () {
             ctx.stroke();
         }
 
-        // 竖线（9条）- 楚河汉界处断开
+        // 竖线（河界处断开）
         for (let x = 0; x < COLS; x++) {
             const { px } = toPixel(x, 0);
             if (x === 0 || x === COLS - 1) {
-                // 左右边框不断开
                 const { py: pyTop } = toPixel(0, 0);
                 const { py: pyBottom } = toPixel(0, ROWS - 1);
                 ctx.beginPath();
@@ -111,7 +107,6 @@ const Board = (function () {
                 ctx.lineTo(px, pyBottom);
                 ctx.stroke();
             } else {
-                // 中间竖线在河界处断开
                 const { py: pyTop } = toPixel(0, 0);
                 const { py: pyRiverTop } = toPixel(0, 4);
                 const { py: pyRiverBottom } = toPixel(0, 5);
@@ -127,10 +122,9 @@ const Board = (function () {
             }
         }
 
-        // 九宫格斜线
         drawPalaceLines();
 
-        // 楚河汉界文字
+        // 楚河汉界（文字不翻转）
         ctx.fillStyle = '#5a3a1a';
         ctx.font = `bold ${cellSize * 0.5}px "STKaiti", "KaiTi", serif`;
         ctx.textAlign = 'center';
@@ -139,21 +133,20 @@ const Board = (function () {
         ctx.fillText('楚 河', boardWidth * 0.3, riverY);
         ctx.fillText('汉 界', boardWidth * 0.7, riverY);
 
-        // 兵炮位标记（十字小标记）
         drawPositionMarks();
     }
 
     function drawPalaceLines() {
         ctx.strokeStyle = '#5a3a1a';
         ctx.lineWidth = 1.2;
-        // 上方九宫（黑方）
+        // 上方九宫
         let { px: x3, py: y0 } = toPixel(3, 0);
         let { px: x5, py: y2 } = toPixel(5, 2);
         ctx.beginPath();
         ctx.moveTo(x3, y0); ctx.lineTo(x5, y2);
         ctx.moveTo(x5, y0); ctx.lineTo(x3, y2);
         ctx.stroke();
-        // 下方九宫（红方）
+        // 下方九宫
         let { px: x3b, py: y7 } = toPixel(3, 7);
         let { px: x5b, py: y9 } = toPixel(5, 9);
         ctx.beginPath();
@@ -174,12 +167,8 @@ const Board = (function () {
         const gap = cellSize * 0.08;
         for (const [x, y] of marks) {
             const { px, py } = toPixel(x, y);
-            // 四个角的 L 形标记
-            const corners = [
-                [-1, -1], [1, -1], [-1, 1], [1, 1],
-            ];
+            const corners = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
             for (const [dx, dy] of corners) {
-                // 边界处只画内侧
                 if ((x === 0 && dx < 0) || (x === 8 && dx > 0)) continue;
                 ctx.beginPath();
                 ctx.moveTo(px + dx * gap, py + dy * gap);
@@ -240,7 +229,6 @@ const Board = (function () {
     function drawHighlights() {
         const r = cellSize * 0.44;
 
-        // 上一步走棋标记
         if (lastMove) {
             for (const pos of [lastMove.from, lastMove.to]) {
                 const { px, py } = toPixel(pos.x, pos.y);
@@ -252,7 +240,6 @@ const Board = (function () {
             }
         }
 
-        // 选中标记
         if (selected) {
             const { px, py } = toPixel(selected.x, selected.y);
             ctx.beginPath();
@@ -262,7 +249,6 @@ const Board = (function () {
             ctx.stroke();
         }
 
-        // 可走位置标记
         for (const move of validMoves) {
             const { px, py } = toPixel(move.x, move.y);
             ctx.beginPath();
@@ -272,14 +258,11 @@ const Board = (function () {
         }
     }
 
-    /**
-     * 处理点击
-     */
     function handleClick(e) {
         if (!onClickCallback) return;
         const rect = canvas.getBoundingClientRect();
-        const px = (e.clientX || e.touches?.[0]?.clientX) - rect.left;
-        const py = (e.clientY || e.touches?.[0]?.clientY) - rect.top;
+        const px = (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX)) - rect.left;
+        const py = (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY)) - rect.top;
         const pos = toBoard(px, py);
         if (pos) onClickCallback(pos.x, pos.y);
     }
@@ -300,8 +283,6 @@ const Board = (function () {
 
     function setMyColor(color) {
         myColor = color;
-        // 黑方玩家需要翻转棋盘，让自己的棋子在下方
-        canvas.style.transform = color === 'black' ? 'rotate(180deg)' : '';
     }
 
     function init(board, onClick) {
@@ -310,7 +291,7 @@ const Board = (function () {
         draw(board);
     }
 
-    window.addEventListener('resize', () => { resize(); });
+    window.addEventListener('resize', () => { if (onClickCallback) { resize(); } });
     canvas.addEventListener('click', handleClick);
     canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleClick(e); }, { passive: false });
 
