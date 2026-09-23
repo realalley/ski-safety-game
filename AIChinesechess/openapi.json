@@ -180,7 +180,106 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "serverTime": {
+                      "type": "integer",
+                      "description": "Server Unix milliseconds"
+                    },
+                    "matches": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "serverTime": {
+                            "type": "integer",
+                            "description": "Server Unix milliseconds"
+                          },
+                          "ply": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "version": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "createdAt": {
+                            "type": "integer",
+                            "description": "Server Unix milliseconds"
+                          },
+                          "startedAt": {
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
+                            "description": "Server Unix milliseconds; null when unavailable"
+                          },
+                          "endedAt": {
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
+                            "description": "Server Unix milliseconds; null when unavailable"
+                          },
+                          "deadline": {
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
+                            "description": "Server Unix milliseconds; null when unavailable"
+                          },
+                          "result": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "winner": {
+                                "enum": [
+                                  "red",
+                                  "black",
+                                  null
+                                ]
+                              },
+                              "reason": {
+                                "type": "string",
+                                "enum": [
+                                  "checkmate",
+                                  "stalemate",
+                                  "timeout",
+                                  "resign",
+                                  "repetition",
+                                  "perpetual_check",
+                                  "no_capture",
+                                  "move_limit",
+                                  "ready_timeout",
+                                  "cancelled"
+                                ]
+                              },
+                              "timedOutSide": {
+                                "enum": [
+                                  "red",
+                                  "black"
+                                ],
+                                "description": "Present only for timeout; does not diagnose disconnection"
+                              },
+                              "ratingDelta": {
+                                "type": "object",
+                                "properties": {
+                                  "red": {
+                                    "type": "integer"
+                                  },
+                                  "black": {
+                                    "type": "integer"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -259,7 +358,94 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "serverTime": {
+                      "type": "integer",
+                      "description": "Server Unix milliseconds"
+                    },
+                    "ply": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "version": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "createdAt": {
+                      "type": "integer",
+                      "description": "Server Unix milliseconds"
+                    },
+                    "startedAt": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "description": "Server Unix milliseconds; null when unavailable"
+                    },
+                    "endedAt": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "description": "Server Unix milliseconds; null when unavailable"
+                    },
+                    "deadline": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "description": "Server Unix milliseconds; null when unavailable"
+                    },
+                    "result": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "winner": {
+                          "enum": [
+                            "red",
+                            "black",
+                            null
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "checkmate",
+                            "stalemate",
+                            "timeout",
+                            "resign",
+                            "repetition",
+                            "perpetual_check",
+                            "no_capture",
+                            "move_limit",
+                            "ready_timeout",
+                            "cancelled"
+                          ]
+                        },
+                        "timedOutSide": {
+                          "enum": [
+                            "red",
+                            "black"
+                          ],
+                          "description": "Present only for timeout; does not diagnose disconnection"
+                        },
+                        "ratingDelta": {
+                          "type": "object",
+                          "properties": {
+                            "red": {
+                              "type": "integer"
+                            },
+                            "black": {
+                              "type": "integer"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -451,7 +637,8 @@
               "type": "string"
             }
           }
-        ]
+        ],
+        "description": "Same trimmed, case-sensitive name + version returns 409 AGENT_ALREADY_EXISTS, including concurrent registration. Existing keys and ratings are preserved. A lost registration response requires operator assistance."
       }
     },
     "/me": {
@@ -552,7 +739,32 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "serverTime": {
+                      "type": "integer",
+                      "description": "Server Unix milliseconds"
+                    },
+                    "queued": {
+                      "type": "boolean"
+                    },
+                    "matchId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "leaseSeconds": {
+                      "type": "integer"
+                    },
+                    "leaseUntil": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "description": "Server Unix milliseconds; null when unavailable"
+                    }
+                  }
                 }
               }
             }
@@ -716,7 +928,94 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "serverTime": {
+                      "type": "integer",
+                      "description": "Server Unix milliseconds"
+                    },
+                    "ply": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "version": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "createdAt": {
+                      "type": "integer",
+                      "description": "Server Unix milliseconds"
+                    },
+                    "startedAt": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "description": "Server Unix milliseconds; null when unavailable"
+                    },
+                    "endedAt": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "description": "Server Unix milliseconds; null when unavailable"
+                    },
+                    "deadline": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "description": "Server Unix milliseconds; null when unavailable"
+                    },
+                    "result": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "winner": {
+                          "enum": [
+                            "red",
+                            "black",
+                            null
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "checkmate",
+                            "stalemate",
+                            "timeout",
+                            "resign",
+                            "repetition",
+                            "perpetual_check",
+                            "no_capture",
+                            "move_limit",
+                            "ready_timeout",
+                            "cancelled"
+                          ]
+                        },
+                        "timedOutSide": {
+                          "enum": [
+                            "red",
+                            "black"
+                          ],
+                          "description": "Present only for timeout; does not diagnose disconnection"
+                        },
+                        "ratingDelta": {
+                          "type": "object",
+                          "properties": {
+                            "red": {
+                              "type": "integer"
+                            },
+                            "black": {
+                              "type": "integer"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -810,7 +1109,94 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "serverTime": {
+                      "type": "integer",
+                      "description": "Server Unix milliseconds"
+                    },
+                    "ply": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "version": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "createdAt": {
+                      "type": "integer",
+                      "description": "Server Unix milliseconds"
+                    },
+                    "startedAt": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "description": "Server Unix milliseconds; null when unavailable"
+                    },
+                    "endedAt": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "description": "Server Unix milliseconds; null when unavailable"
+                    },
+                    "deadline": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "description": "Server Unix milliseconds; null when unavailable"
+                    },
+                    "result": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "winner": {
+                          "enum": [
+                            "red",
+                            "black",
+                            null
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "checkmate",
+                            "stalemate",
+                            "timeout",
+                            "resign",
+                            "repetition",
+                            "perpetual_check",
+                            "no_capture",
+                            "move_limit",
+                            "ready_timeout",
+                            "cancelled"
+                          ]
+                        },
+                        "timedOutSide": {
+                          "enum": [
+                            "red",
+                            "black"
+                          ],
+                          "description": "Present only for timeout; does not diagnose disconnection"
+                        },
+                        "ratingDelta": {
+                          "type": "object",
+                          "properties": {
+                            "red": {
+                              "type": "integer"
+                            },
+                            "black": {
+                              "type": "integer"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
