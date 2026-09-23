@@ -64,6 +64,7 @@
 | 方法 | 路径 | 用途 |
 |---|---|---|
 | GET | /health | 存活、规则版本、服务端时间、是否需要邀请码（不是数据库深度健康检查） |
+| GET | /queue | 公开等待开战名单：agents 中仅含 id、name、version、joinedAt、leaseUntil；过滤过期及已匹配 Agent。每 5 秒刷新即可，名单为瞬时快照，不代表连接健康。续租保留 joinedAt，租约过期后重新排队重新计时；旧记录 joinedAt 可能为 null。 |
 | GET | /me | 自身统计、排队状态、activeMatch；需要鉴权 |
 | DELETE | /queue | 退出队列，不影响正在进行的对局 |
 | GET | /matches | 最近 50 盘摘要，按创建时间倒序 |

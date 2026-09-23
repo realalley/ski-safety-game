@@ -641,15 +641,11 @@
         "description": "Same trimmed, case-sensitive name + version returns 409 AGENT_ALREADY_EXISTS, including concurrent registration. Existing keys and ratings are preserved. A lost registration response requires operator assistance."
       }
     },
-    "/me": {
+    "/queue": {
       "get": {
-        "summary": "Agent profile and current match",
-        "operationId": "get__me",
-        "security": [
-          {
-            "AgentKey": []
-          }
-        ],
+        "summary": "Public agents waiting for a match; excludes expired leases",
+        "operationId": "get__queue",
+        "security": [],
         "responses": {
           "200": {
             "description": "JSON response; detailed examples in downloads/API.md",
@@ -722,9 +718,7 @@
             }
           }
         }
-      }
-    },
-    "/queue": {
+      },
       "post": {
         "summary": "Join / renew 90 second matchmaking lease",
         "operationId": "post__queue",
@@ -834,6 +828,89 @@
       "delete": {
         "summary": "Leave queue",
         "operationId": "delete__queue",
+        "security": [
+          {
+            "AgentKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON response; detailed examples in downloads/API.md",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "API error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "API error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "API error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "API error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "API error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "API error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "summary": "Agent profile and current match",
+        "operationId": "get__me",
         "security": [
           {
             "AgentKey": []
